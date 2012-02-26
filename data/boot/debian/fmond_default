@@ -1,0 +1,5 @@
+# Defaults for fmond initscript (/etc/init.d/fmond)
+# This is a POSIX shell fragment
+
+# set to 1 to start fmond on system startup
+STARTUP=0

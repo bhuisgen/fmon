@@ -1,0 +1,152 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+FMOND_VERSION=`cat $srcdir/VERSION`
+AC_SUBST(FMOND_VERSION)
+
+AC_PREREQ([2.67])
+AC_INIT([fmond], m4_esyscmd([tr -d '\n' <VERSION]), [bhuisgen@hbis.fr], [fmond], [http://blog.hbis.fr])
+AC_CONFIG_HEADER([config.h])
+AM_INIT_AUTOMAKE()
+
+# Options
+AC_ARG_ENABLE(debug,
+   AC_HELP_STRING([--enable-debug], [generate debug informations]),
+   debug=yes,
+   debug=no)
+AC_ARG_ENABLE(darwin,
+   AC_HELP_STRING([--enable-darwin], [use Darwin configuration]),
+   if test "$enableval" = "yes"; then
+   	initd_type=darwin
+   fi
+   AC_MSG_RESULT([enabling Darwin support]))
+AC_ARG_ENABLE(debian,
+   AC_HELP_STRING([--enable-debian], [use Debian configuration]),
+   if test "$enableval" = "yes"; then
+   	initd_type=debian
+   fi
+   AC_MSG_RESULT([enabling Debian support]))
+AC_ARG_ENABLE(gentoo,
+   AC_HELP_STRING([--enable-gentoo], [use Gentoo configuration]),
+   if test "$enableval" = "yes"; then
+   	initd_type=gentoo
+   fi
+   AC_MSG_RESULT([enabling Gentoo support]))
+AC_ARG_ENABLE(redhat,
+   AC_HELP_STRING([--enable-redhat], [use Red Hat configuration]),
+   if test "$enableval" = "yes"; then
+   	initd_type=redhat
+   fi
+   AC_MSG_RESULT([enabling Red Hat support]))
+      
+# Checks for platforms
+AC_CANONICAL_HOST
+case "${host_os}" in
+   *darwin*)
+	LDFLAGS="$LDFLAGS -framework CoreServices"
+   AC_SUBST(host_os, [unix])
+   AC_DEFINE(OS_UNIX, [], [UNIX])
+   AC_DEFINE(OS_BSD, [], [BSD])
+   AC_DEFINE(OS_DARWIN, [], [Darwin])
+   ;;
+
+   *freebsd*)
+   AC_SUBST(host_os, [unix])
+   AC_DEFINE(OS_UNIX, [], [UNIX])
+   AC_DEFINE(OS_BSD, [], [BSD])
+   AC_DEFINE(OS_FREEBSD, [], [FreeBSD])
+   ;;
+
+   *linux*)
+   AC_SUBST(host_os, [unix])
+   AC_DEFINE(OS_UNIX, [], [UNIX])
+   AC_DEFINE(OS_LINUX, [], [Linux])
+   ;;
+
+   *netbsd*)
+   AC_SUBST(host_os, [unix])
+   AC_DEFINE(OS_UNIX, [], [UNIX])
+   AC_DEFINE(OS_BSD, [], [BSD])
+   AC_DEFINE(OS_NETBSD, [], [NetBSD])
+   ;;
+
+   *openbsd*)
+   AC_SUBST(host_os, [unix])
+   AC_DEFINE(OS_UNIX, [], [UNIX])
+   AC_DEFINE(OS_BSD, [], [BSD])
+   AC_DEFINE(OS_OPENBSD, [], [OpenBSD])
+   ;;
+
+   *)
+   AC_MSG_ERROR([sorry, host OS not supported.])
+   ;;
+esac
+
+# Checks for programs.
+CFLAGS="$CFLAGS -Wall"
+
+AC_PROG_CC
+AM_PROG_CC_STDC
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_INSTALL
+
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([0.18])
+ALL_LINGUAS="en fr"
+
+# Checks for libraries.
+deps_modules="glib-2.0 >= 2.6.0 gio-2.0 >= 2.6.0"
+PKG_CHECK_MODULES(DEPS, [$deps_modules])
+AC_SUBST(DEPS_CFLAGS)
+AC_SUBST(DEPS_LIBS)
+
+# Checks for header files.
+AC_CHECK_HEADERS([fcntl.h libintl.h locale.h stdlib.h string.h syslog.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_INLINE
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+
+# Checks for library functions.
+AC_CHECK_FUNCS([atexit memset setlocale strcasecmp strdup])
+AC_FUNC_FORK
+AC_FUNC_MALLOC
+
+# Debug and release flags
+case "${debug}" in
+   yes)
+      CFLAGS="$CFLAGS -g3"
+      CXXFLAGS="$CXXFLAGS -g3"
+      AC_DEFINE(DEBUG, [], [debug])
+      ;;
+   no)
+      CFLAGS="$CFLAGS -O1"
+      CXXFLAGS="$CXXFLAGS -O1"
+      AC_DEFINE(NDEBUG, [], [nodebug])
+      ;;
+esac
+
+# OS flags
+AM_CONDITIONAL(USE_DARWIN, test x$initd_type = xdarwin)
+AM_CONDITIONAL(USE_DEBIAN, test x$initd_type = xdebian)
+AM_CONDITIONAL(USE_GENTOO, test x$initd_type = xgentoo)
+AM_CONDITIONAL(USE_REDHAT, test x$initd_type = xredhat)
+AM_CONDITIONAL(USE_UNDEF, test x$initd_type = x)
+
+# Generate Makefiles
+AC_CONFIG_FILES([ po/Makefile.in
+	Makefile
+	src/Makefile
+	data/Makefile
+	data/boot/Makefile
+	data/boot/darwin/Makefile
+	data/boot/debian/Makefile
+	data/boot/gentoo/Makefile
+	data/boot/redhat/Makefile
+	doc/Makefile
+])
+
+AC_OUTPUT
+

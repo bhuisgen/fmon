@@ -1,0 +1,134 @@
+# Translation for the fmond project
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# This file is distributed under the same license as the PACKAGE package.
+# Boris HUISGEN <bhuisgen@hbis.fr>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: fmond 0.1\n"
+"Report-Msgid-Bugs-To: bhuisgen@hbis.fr\n"
+"POT-Creation-Date: 2012-02-26 17:52+0100\n"
+"PO-Revision-Date: 2012-02-22 23:56+0200\n"
+"Last-Translator: Boris HUISGEN <bhuisgen@hbis.fr>\n"
+"Language-Team: Français <fr@li.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/fmond.c:117 src/fmond.c:128 src/fmond.c:136 src/fmond.c:175
+#: src/fmond.c:186 src/fmond.c:216
+msgid "error in config file"
+msgstr "erreur dans le fichier de configuration"
+
+#: src/fmond.c:129 src/fmond.c:175
+msgid "no group 'main'"
+msgstr "aucun groupe 'main'"
+
+#: src/fmond.c:137 src/fmond.c:186
+msgid "the first group is not 'main'"
+msgstr "le premier groupe n'est pas 'main'"
+
+#: src/fmond.c:162
+msgid "error in config file, aborting reload"
+msgstr "erreur dans le fichier de configuration, rechargement ignoré"
+
+#: src/fmond.c:217
+msgid "no watch group found"
+msgstr "aucun groupe de sonde trouvé"
+
+#: src/fmond.c:238
+msgid "invalid path"
+msgstr "chemin invalide"
+
+#: src/fmond.c:249
+msgid "file/path doesn't exist"
+msgstr "fichier/répertoire inexistant"
+
+#: src/fmond.c:263
+msgid "no events found"
+msgstr "aucun évènement détecté"
+
+#: src/fmond.c:286
+msgid "invalid event"
+msgstr "évènement invalide"
+
+#: src/fmond.c:302
+msgid "invalid command"
+msgstr "commande invalide"
+
+#: src/fmond.c:444
+msgid "failed to create file monitor"
+msgstr "échec de création du moniteur sur le fichier, code d'erreur"
+
+#: src/fmond.c:446
+msgid "failed to start watcher"
+msgstr "échec de démarrage de l'observateur"
+
+#: src/fmond.c:454
+msgid "watcher enabled"
+msgstr "sonde activée"
+
+#: src/fmond.c:478
+msgid "watcher event received"
+msgstr "évènement reçu par la sonde"
+
+#: src/fmond.c:567
+msgid "watcher event fired"
+msgstr "évènement géré par la sonde"
+
+#: src/fmond.c:592
+msgid "executing command"
+msgstr "exécution de la commande"
+
+#: src/fmond.c:598
+msgid "failed to execute command"
+msgstr "échec lors de l'exécution de la commande"
+
+#: src/fmond.c:628
+msgid "read configuration from file"
+msgstr "lire la configuration depuis le fichier"
+
+#: src/fmond.c:628
+msgid "file"
+msgstr "fichier"
+
+#: src/fmond.c:630
+msgid "set verbose output"
+msgstr "fixe le niveau de verbosité"
+
+#: src/fmond.c:632
+msgid "show version information"
+msgstr "affiche les informations de version"
+
+#: src/fmond.c:672
+msgid "SIGPIPE received, continuing execution"
+msgstr "SIGPIPE reçu, poursuite de l'exécution"
+
+#: src/fmond.c:678
+msgid "SIGHUP received, reloading configuration"
+msgstr "SIGHUP reçu, rechargement de la configuration"
+
+#: src/fmond.c:686
+msgid "SIGINT received, exiting"
+msgstr "SIGINT reçu, abandon de l'exécution"
+
+#: src/fmond.c:694
+msgid "SIGTERM received, exiting"
+msgstr "SIGTERM reçu, abandon de l'exécution"
+
+#: src/fmond.c:726
+msgid "daemon stopped"
+msgstr "démon démarré"
+
+#: src/fmond.c:797
+msgid "failed to create logger"
+msgstr "échec de création du journaliseur"
+
+#: src/fmond.c:834
+msgid "failed to daemonize, error code"
+msgstr "échec de démonisation, code d'erreur"
+
+#: src/fmond.c:840
+msgid "daemon started"
+msgstr "démon démarré"
