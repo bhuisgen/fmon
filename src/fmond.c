@@ -623,9 +623,9 @@ watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
   if (!user_data)
     return;
 
-  parent = g_file_new_for_path(watcher->path);
-
   watcher = (watcher_t *) user_data;
+
+  parent = g_file_new_for_path(watcher->path);
 
   event = (watcher_event_t *)g_new0(watcher_event_t, 1);
   event->file = g_file_get_path(file);
