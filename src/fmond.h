@@ -39,9 +39,7 @@
 #define CONFIG_KEY_MAIN_PIDFILE                         "PIDFile"
 #define CONFIG_KEY_MAIN_PIDFILE_DEFAULT                 "/var/run/" PACKAGE "/" PACKAGE ".pid"
 #define CONFIG_KEY_MAIN_USER                            "User"
-#define CONFIG_KEY_MAIN_USER_DEFAULT                    "root"
 #define CONFIG_KEY_MAIN_GROUP                           "Group"
-#define CONFIG_KEY_MAIN_GROUP_DEFAULT                   "root"
 #define CONFIG_KEY_MAIN_LOGLEVEL                        "LogLevel"
 #define CONFIG_KEY_MAIN_LOGLEVEL_NONE                   0
 #define CONFIG_KEY_MAIN_LOGLEVEL_ERROR                  1
@@ -68,6 +66,9 @@
 #define CONFIG_KEY_WATCHER_COMMAND_KEY_PATH             "$path"
 #define CONFIG_KEY_WATCHER_COMMAND_KEY_EVENT            "$event"
 #define CONFIG_KEY_WATCHER_COMMAND_KEY_FILE             "$file"
+#define CONFIG_KEY_WATCHER_COMMAND_KEY_RFILE            "$rfile"
+#define CONFIG_KEY_WATCHER_INCLUDE                      "Include"
+#define CONFIG_KEY_WATCHER_EXCLUDE                      "Exclude"
 
 typedef struct _application_t
 {
