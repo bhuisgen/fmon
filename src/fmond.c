@@ -1070,11 +1070,6 @@ main(gint argc, gchar *argv[])
   signal(SIGINT, sigint);
   signal(SIGTERM, sigterm);
 
-  signal(SIGPIPE, sigpipe);
-  signal(SIGHUP, sighup);
-  signal(SIGINT, sigint);
-  signal(SIGTERM, sigterm);
-
   start_watchers();
 
   g_main_loop_run(app->loop);
