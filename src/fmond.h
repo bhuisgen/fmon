@@ -61,6 +61,7 @@
 #define CONFIG_KEY_WATCHER_EVENT_CREATED                "created"
 #define CONFIG_KEY_WATCHER_EVENT_DELETED                "deleted"
 #define CONFIG_KEY_WATCHER_EVENT_ATTRIBUTECHANGED       "attribute_changed"
+#define CONFIG_KEY_WATCHER_EVENT_UNMOUNTED              "unmounted"
 #define CONFIG_KEY_WATCHER_COMMAND                      "Command"
 #define CONFIG_KEY_WATCHER_COMMAND_KEY_NAME             "$name"
 #define CONFIG_KEY_WATCHER_COMMAND_KEY_PATH             "$path"
@@ -77,6 +78,7 @@ typedef struct _application_t
   logger_t *logger;
   GKeyFile *settings;
   GSList *watchers;
+  gboolean started;
   gchar *config_file;
   gboolean verbose;
 } application_t;

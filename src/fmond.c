@@ -320,7 +320,9 @@ init_watchers()
               && (g_strcmp0(watcher->events[i],
                   CONFIG_KEY_WATCHER_EVENT_DELETED) != 0)
               && (g_strcmp0(watcher->events[i],
-                  CONFIG_KEY_WATCHER_EVENT_ATTRIBUTECHANGED) != 0))
+                  CONFIG_KEY_WATCHER_EVENT_ATTRIBUTECHANGED) != 0)
+              && (g_strcmp0(watcher->events[i],
+                  CONFIG_KEY_WATCHER_EVENT_UNMOUNTED) != 0))
             {
               g_printerr("%s: %s\n", watcher->name, N_("invalid event"));
 
@@ -584,6 +586,8 @@ start_watchers()
 
       LOG_INFO("%s: %s", watcher->name, N_("watcher started"));
     }
+
+  app->started = TRUE;
 }
 
 void
@@ -591,6 +595,9 @@ stop_watchers()
 {
   GSList *item;
   watcher_t *watcher;
+
+  if (!app->started)
+    return;
 
   LOG_INFO("%s", N_("stopping watchers"));
 
@@ -610,6 +617,8 @@ stop_watchers()
           LOG_INFO("%s: %s", watcher->name, N_("watcher stopped"));
         }
     }
+
+  app->started = FALSE;
 }
 
 void
@@ -630,6 +639,8 @@ watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
   event = (watcher_event_t *)g_new0(watcher_event_t, 1);
   event->file = g_file_get_path(file);
   event->rfile = g_file_get_relative_path(parent, file);
+
+  g_object_unref(parent);
 
   LOG_DEBUG("%s: %s (event_type=%d, file:%s)",
       watcher->name, N_("watcher event received"), event_type, event->file);
@@ -664,6 +675,13 @@ watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
       break;
     }
 
+  case G_FILE_MONITOR_EVENT_UNMOUNTED:
+    {
+      event->event = g_strdup(CONFIG_KEY_WATCHER_EVENT_UNMOUNTED);
+
+      break;
+    }
+
   default:
     {
       LOG_DEBUG("%s: %s (event_type=%d)",
@@ -681,8 +699,8 @@ watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
 
   if (!watcher_event_check(watcher, event))
     {
-      LOG_INFO("%s: %s (%s)",
-          watcher->name, N_("file ignored"), event->rfile);
+      LOG_DEBUG("%s: %s (file=%s)",
+          watcher->name, N_("event ignored"), event->rfile);
 
       g_free(event->event);
       g_free(event->file);
@@ -703,8 +721,22 @@ watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
 gboolean
 watcher_event_check(watcher_t *watcher, watcher_event_t *event)
 {
+  gboolean found = FALSE;
   gboolean include = TRUE;
   gint i;
+
+  for (i = 0; watcher->events[i] != NULL; i++)
+    {
+      if (g_strcmp0(watcher->events[i], event->event) == 0)
+        {
+          found = TRUE;
+
+          break;
+        }
+    }
+
+  if (!found)
+    return FALSE;
 
   if (watcher->includes)
     {
@@ -714,8 +746,8 @@ watcher_event_check(watcher_t *watcher, watcher_event_t *event)
         {
           if (g_pattern_match_simple(watcher->includes[i], event->rfile))
             {
-              LOG_INFO("%s (%s)",
-                  N_("relative filename found in include list"), event->rfile);
+              LOG_INFO("%s",
+                  N_("relative filename found in include list"));
 
               return TRUE;
             }
@@ -724,12 +756,12 @@ watcher_event_check(watcher_t *watcher, watcher_event_t *event)
 
   if (watcher->excludes)
     {
-      for (i = 0; watcher->includes[i] != NULL; i++)
+      for (i = 0; watcher->excludes[i] != NULL; i++)
         {
-          if (g_pattern_match_simple(watcher->includes[i], event->rfile))
+          if (g_pattern_match_simple(watcher->excludes[i], event->rfile))
             {
-              LOG_INFO("%s (%s)",
-                  N_("relative filename found in exclude list"), event->rfile);
+              LOG_INFO("%s",
+                  N_("relative filename found in exclude list"));
 
               return FALSE;
             }
@@ -746,7 +778,7 @@ watcher_event_fired(watcher_t *watcher, watcher_event_t *event)
   GRegex *regex;
   gchar *cmd, *tmp;
 
-  LOG_INFO( "%s: %s (event=%s, file:%s)",
+  LOG_INFO( "%s: %s (event=%s, file=%s)",
       watcher->name, N_("watcher event fired"), event->event, event->rfile);
 
   regex = g_regex_new("\\" CONFIG_KEY_WATCHER_COMMAND_KEY_NAME, 0, 0, &error);
@@ -984,7 +1016,11 @@ main(gint argc, gchar *argv[])
   bindtextdomain(PACKAGE, LOCALEDIR);
   textdomain(PACKAGE);
 
+#ifdef DEBUG
+  g_type_init_with_debug_flags(G_TYPE_DEBUG_MASK);
+#else
   g_type_init();
+#endif
 
   app = g_new0(application_t, 1);
   app->loop = g_main_loop_new(NULL, TRUE);
