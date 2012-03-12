@@ -25,14 +25,16 @@
 #include "log_file.h"
 #include "log_syslog.h"
 
+#include <sys/types.h>
+#include <pwd.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define LOG_ERROR(_fmt, ...)    log_message(app->logger, LOG_LEVEL_ERROR, _fmt, __VA_ARGS__)
-#define LOG_INFO(_fmt, ...)     log_message(app->logger, LOG_LEVEL_INFO, _fmt, __VA_ARGS__)
+#define LOG_ERROR(_fmt, ...)    if (app->logger) log_message(app->logger, LOG_LEVEL_ERROR, _fmt, __VA_ARGS__)
+#define LOG_INFO(_fmt, ...)     if (app->logger) log_message(app->logger, LOG_LEVEL_INFO, _fmt, __VA_ARGS__)
 #ifdef DEBUG
-#define LOG_DEBUG(_fmt, ...)    log_message(app->logger, LOG_LEVEL_DEBUG, _fmt, __VA_ARGS__)
+#define LOG_DEBUG(_fmt, ...)    if (app->logger) log_message(app->logger, LOG_LEVEL_DEBUG, _fmt, __VA_ARGS__)
 #else
 #define LOG_DEBUG(_fmt, ...)
 #endif
@@ -41,11 +43,17 @@ typedef struct _watcher_t
 {
   gchar *name;
   gchar *path;
+  gboolean recursive;
+  gint mindepth;
+  gint maxdepth;
+  gchar *type;
+  gchar *user;
+  gchar *group;
   gchar **events;
   gchar *command;
   gchar **includes;
   gchar **excludes;
-  GFileMonitor *monitor;
+  GHashTable *monitors;
 } watcher_t;
 
 typedef struct _watcher_event_t
@@ -69,14 +77,36 @@ init_watchers();
 logger_t *
 init_logger();
 void
-start_watchers();
+start_monitors();
 void
-stop_watchers();
+stop_monitors();
+void
+list_monitors();
+void
+create_mount_monitor();
+void
+destroy_mount_monitor();
+void
+mount_event(GUnixMountMonitor *monitor, gpointer user_data);
+gboolean
+watcher_add_monitor_for_path(const watcher_t *watcher, const gchar *path);
+gboolean
+watcher_add_monitor_for_recursive_path(const watcher_t *watcher,
+    const gchar *path, guint depth);
+void
+watcher_remove_monitor_for_path(const watcher_t *watcher, const gchar *path);
+void
+watcher_remove_monitor_for_recursive_path(const watcher_t *watcher,
+    const gchar *path);
+void
+watcher_destroy_monitors(const watcher_t *watcher);
+void
+watcher_list_monitors(const watcher_t *watcher);
 void
 watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
     GFileMonitorEvent event_type, gpointer user_data);
 gboolean
-watcher_event_check(watcher_t *watcher, watcher_event_t *event);
+watcher_event_test(watcher_t *watcher, watcher_event_t *event);
 void
 watcher_event_fired(watcher_t *watcher, watcher_event_t *event);
 void
@@ -91,6 +121,10 @@ void
 sigint(gint sig);
 void
 sigterm(gint sig);
+void
+sigusr1(gint sig);
+void
+sigusr2(gint sig);
 void
 cleanup(void);
 
@@ -118,7 +152,8 @@ get_default_config_file(const gchar *file)
     {
       g_free(config_file);
 
-      config_file = g_build_path(G_DIR_SEPARATOR_S, SYSCONFDIR, FMOND_CONFIGFILE, NULL);
+      config_file = g_build_path(G_DIR_SEPARATOR_S, SYSCONFDIR,
+          FMOND_CONFIGFILE, NULL);
     }
 
   if (g_access(config_file, R_OK))
@@ -143,8 +178,8 @@ load_config()
       &error);
   if (error)
     {
-      g_printerr("%s: %s (%s)\n", app->config_file, N_("error in configuration file"),
-          error->message);
+      g_printerr("%s: %s (%s)\n", app->config_file,
+          N_("error in configuration file"), error->message);
 
       g_error_free(error);
       error = NULL;
@@ -157,15 +192,16 @@ load_config()
   group = g_key_file_get_start_group(app->settings);
   if (!group)
     {
-      g_printerr("%s: %s (%s)\n", app->config_file, N_("error in configuration file"),
-          N_("no group 'main'"));
+      g_printerr("%s: %s (%s)\n", app->config_file,
+          N_("error in configuration file"), N_("no group 'main'"));
 
       return FALSE;
     }
 
   if (g_strcmp0(group, CONFIG_GROUP_MAIN) != 0)
     {
-      g_printerr("%s: %s (%s)\n", app->config_file, N_("error in configuration file"),
+      g_printerr("%s: %s (%s)\n", app->config_file,
+          N_("error in configuration file"),
           N_("the first group is not 'main'"));
 
       g_free(group);
@@ -191,8 +227,7 @@ reload_config()
   if (error)
     {
       LOG_ERROR("%s: %s (%s)\n",
-          app->config_file, N_("error in configuration file, aborting reload"),
-          error->message);
+          app->config_file, N_("error in configuration file, aborting reload"), error->message);
 
       g_error_free(error);
       error = NULL;
@@ -207,8 +242,7 @@ reload_config()
   if (!group)
     {
       LOG_ERROR("%s: %s (%s)\n",
-          app->config_file, N_("error in configuration file"),
-          N_("no group 'main'"));
+          app->config_file, N_("error in configuration file"), N_("no group 'main'"));
 
       g_key_file_free(settings);
 
@@ -218,8 +252,7 @@ reload_config()
   if (g_strcmp0(group, CONFIG_GROUP_MAIN) != 0)
     {
       LOG_ERROR("%s: %s (%s)\n",
-          app->config_file, N_("error in configuration file"),
-          N_("the first group is not 'main'"));
+          app->config_file, N_("error in configuration file"), N_("the first group is not 'main'"));
 
       g_free(group);
       g_key_file_free(settings);
@@ -293,6 +326,119 @@ init_watchers()
 
           return NULL;
         }
+      if (!g_file_test(watcher->path, G_FILE_TEST_IS_DIR))
+        {
+          if (g_access(watcher->path, R_OK))
+            {
+              g_printerr("%s: %s\n", watcher->name,
+                  N_("bad permissions on file"));
+
+              return NULL;
+            }
+        }
+      else
+        {
+          if (g_access(watcher->path, R_OK | X_OK))
+            {
+              g_printerr("%s: %s\n", watcher->name,
+                  N_("bad permissions on path"));
+
+              return NULL;
+            }
+        }
+
+      watcher->recursive = g_key_file_get_boolean(app->settings, watcher->name,
+          CONFIG_KEY_WATCHER_RECURSIVE, &error);
+      if (error)
+        {
+          watcher->recursive = CONFIG_KEY_WATCHER_RECURSIVE_DEFAULT;
+          g_error_free(error);
+          error = NULL;
+        }
+
+      if (watcher->recursive)
+        {
+          if (!g_file_test(watcher->path, G_FILE_TEST_IS_DIR))
+            {
+              g_printerr("%s: %s\n", watcher->name,
+                  N_("recursion is enabled but path is not a directory"));
+
+              g_free(watcher->path);
+              g_free(watcher->name);
+              g_free(watcher);
+              g_strfreev(groups);
+
+              return NULL;
+            }
+
+          watcher->maxdepth = g_key_file_get_integer(app->settings,
+              watcher->name, CONFIG_KEY_WATCHER_MAXDEPTH, &error);
+          if (error)
+            {
+              watcher->recursive = CONFIG_KEY_WATCHER_MAXDEPTH_DEFAULT;
+
+              g_error_free(error);
+              error = NULL;
+            }
+          if (watcher->maxdepth < 0)
+            {
+              g_printerr("%s: %s\n", watcher->name,
+                  N_("invalid maximum depth of recursion"));
+
+              g_free(watcher->path);
+              g_free(watcher->name);
+              g_free(watcher);
+              g_strfreev(groups);
+
+              return NULL;
+            }
+        }
+
+      watcher->type = g_key_file_get_string(app->settings, watcher->name,
+          CONFIG_KEY_WATCHER_TYPE, &error);
+      if (error)
+        {
+          g_error_free(error);
+          error = NULL;
+        }
+      if (watcher->type
+          && (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_BLOCK) != 0)
+          && (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_CHARACTER) != 0)
+          && (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_DIRECTORY) != 0)
+          && (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_FIFO) != 0)
+          && (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_REGULAR) != 0)
+          && (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_SOCKET) != 0)
+          && (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_SYMBOLICLINK)
+              != 0))
+        {
+          g_printerr("%s: %s\n", watcher->name, N_("invalid type"));
+
+          g_error_free(error);
+          error = NULL;
+          g_free(watcher->type);
+          g_free(watcher->path);
+          g_free(watcher->name);
+          g_free(watcher);
+          g_strfreev(groups);
+
+          return NULL;
+        }
+
+      watcher->user = g_key_file_get_string(app->settings, watcher->name,
+          CONFIG_KEY_WATCHER_USER, &error);
+      if (error)
+        {
+          g_error_free(error);
+          error = NULL;
+        }
+
+      watcher->group = g_key_file_get_string(app->settings, watcher->name,
+          CONFIG_KEY_WATCHER_GROUP, &error);
+      if (error)
+        {
+          g_error_free(error);
+          error = NULL;
+        }
 
       watcher->events = g_key_file_get_string_list(app->settings, watcher->name,
           CONFIG_KEY_WATCHER_EVENTS, &len, &error);
@@ -302,6 +448,7 @@ init_watchers()
 
           g_error_free(error);
           error = NULL;
+          g_free(watcher->type);
           g_free(watcher->path);
           g_free(watcher->name);
           g_free(watcher);
@@ -309,12 +456,10 @@ init_watchers()
 
           return NULL;
         }
-      for (i = 0; watcher->events[i] != NULL; i++)
+      for (i = 0; watcher->events[i]; i++)
         {
           if ((g_strcmp0(watcher->events[i], CONFIG_KEY_WATCHER_EVENT_CHANGED)
               != 0)
-              && (g_strcmp0(watcher->events[i],
-                  CONFIG_KEY_WATCHER_EVENT_CHANGED) != 0)
               && (g_strcmp0(watcher->events[i],
                   CONFIG_KEY_WATCHER_EVENT_CREATED) != 0)
               && (g_strcmp0(watcher->events[i],
@@ -322,11 +467,14 @@ init_watchers()
               && (g_strcmp0(watcher->events[i],
                   CONFIG_KEY_WATCHER_EVENT_ATTRIBUTECHANGED) != 0)
               && (g_strcmp0(watcher->events[i],
+                  CONFIG_KEY_WATCHER_EVENT_MOUNTED) != 0)
+              && (g_strcmp0(watcher->events[i],
                   CONFIG_KEY_WATCHER_EVENT_UNMOUNTED) != 0))
             {
               g_printerr("%s: %s\n", watcher->name, N_("invalid event"));
 
               g_strfreev(watcher->events);
+              g_free(watcher->type);
               g_free(watcher->path);
               g_free(watcher->name);
               g_free(watcher);
@@ -346,6 +494,7 @@ init_watchers()
           g_error_free(error);
           error = NULL;
           g_strfreev(watcher->events);
+          g_free(watcher->type);
           g_free(watcher->path);
           g_free(watcher->name);
           g_free(watcher);
@@ -369,6 +518,8 @@ init_watchers()
           g_error_free(error);
           error = NULL;
         }
+
+      watcher->monitors = g_hash_table_new(g_str_hash, g_str_equal);
 
       list = g_slist_append(list, watcher);
     }
@@ -549,83 +700,727 @@ init_logger()
 }
 
 void
-start_watchers()
+start_monitors()
 {
-  GError *error = NULL;
-  GFile *file;
   GSList *item;
   watcher_t *watcher;
 
+  if (app->started)
+    {
+      LOG_INFO("%s", N_("watchers already started"));
+
+      return;
+    }
+
   LOG_INFO("%s", N_("starting watchers"));
+
+  create_mount_monitor();
+
+  LOG_INFO("%s", N_("mount watcher started"));
 
   for (item = app->watchers; item; item = item->next)
     {
       watcher = (watcher_t *) item->data;
 
-      file = g_file_new_for_path(watcher->path);
-
-      watcher->monitor = g_file_monitor(file, G_FILE_MONITOR_NONE, NULL,
-          &error);
-      g_object_unref(file);
-      if (error)
+      if (watcher->recursive)
         {
-          LOG_DEBUG(
-              "%s: %s (%s)",
-              watcher->name, N_("failed to create file monitor"), error->message);
-
-          LOG_ERROR("%s: %s", watcher->name, N_("failed to start watcher"));
-
-          g_error_free(error);
-          error = NULL;
-
-          continue;
+          watcher_add_monitor_for_recursive_path(watcher, watcher->path, 1);
+        }
+      else
+        {
+          watcher_add_monitor_for_path(watcher, watcher->path);
         }
 
-      g_signal_connect(watcher->monitor, "changed", G_CALLBACK(watcher_event),
-          watcher);
-
       LOG_INFO("%s: %s", watcher->name, N_("watcher started"));
+
+      watcher_list_monitors(watcher);
     }
 
   app->started = TRUE;
 }
 
 void
-stop_watchers()
+stop_monitors()
 {
   GSList *item;
   watcher_t *watcher;
 
   if (!app->started)
-    return;
+    {
+      LOG_INFO("%s", N_("watchers already stopped"));
+
+      return;
+    }
 
   LOG_INFO("%s", N_("stopping watchers"));
+
+  destroy_mount_monitor();
+
+  LOG_INFO("%s", N_("mount watcher stopped"));
 
   for (item = app->watchers; item; item = item->next)
     {
       watcher = (watcher_t *) item->data;
 
-      if (watcher->monitor)
-        {
-          if (!g_file_monitor_is_cancelled(watcher->monitor))
-            g_file_monitor_cancel(watcher->monitor);
-          else
-            LOG_DEBUG("%s: %s", watcher->name, N_("file monitor already cancelled"));
+      watcher_destroy_monitors(watcher);
 
-          g_object_unref(watcher->monitor);
-
-          LOG_INFO("%s: %s", watcher->name, N_("watcher stopped"));
-        }
+      LOG_INFO("%s: %s", watcher->name, N_("watcher stopped"));
     }
 
   app->started = FALSE;
 }
 
 void
+list_monitors()
+{
+  GSList *item;
+  watcher_t *watcher;
+
+  if (!app->started)
+    {
+      LOG_INFO("%s", N_("watchers stopped"));
+
+      return;
+    }
+
+  LOG_INFO("%s", N_("listing monitors"));
+
+  for (item = app->watchers; item; item = item->next)
+    {
+      watcher = (watcher_t *) item->data;
+
+      watcher_list_monitors(watcher);
+    }
+}
+
+void
+create_mount_monitor()
+{
+  LOG_DEBUG("%s", "creating UNIX mount monitor");
+
+  app->monitor = g_unix_mount_monitor_new();
+  app->mounts = g_unix_mounts_get(NULL);
+
+  g_signal_connect(app->monitor, "mounts-changed", G_CALLBACK(mount_event), NULL);
+}
+
+void
+destroy_mount_monitor()
+{
+  GUnixMountEntry *entry;
+  GList *item;
+
+  LOG_DEBUG("%s", "destroying UNIX mount monitor");
+
+  if (app->monitor)
+    {
+      g_object_unref(app->monitor);
+    }
+
+  for (item = app->mounts; item; item = item->next)
+    {
+      entry = (GUnixMountEntry *)item->data;
+
+      g_unix_mount_free(entry);
+    }
+
+  g_list_free(app->mounts);
+}
+
+void
+mount_event(GUnixMountMonitor *monitor, gpointer user_data)
+{
+  GFile *m_file, *w_file, *parent, *top, *tmp;
+  GUnixMountEntry *mount1, *mount2;
+  GList *mounts, *item1, *item2;
+  GSList *item3;
+  GHashTableIter iter;
+  gpointer key, value;
+  const gchar *mountpath;
+  gchar *path;
+  gboolean found, matched;
+  gint depth;
+  watcher_t *watcher;
+  watcher_event_t *event;
+
+  LOG_DEBUG("%s: %s", "mount", N_("mount event received"));
+
+  mounts = g_unix_mounts_get(NULL);
+
+  for (item1 = app->mounts, found = FALSE, matched = FALSE; item1;
+      item1 = item1->next, found = FALSE, matched = FALSE)
+    {
+      mount1 = (GUnixMountEntry *) item1->data;
+
+      for (item2 = mounts; item2; item2 = item2->next)
+        {
+          mount2 = (GUnixMountEntry *) item2->data;
+
+          if (g_unix_mount_compare(mount1, mount2) == 0)
+            {
+              found = TRUE;
+
+              break;
+            }
+        }
+
+      if (!found)
+        {
+          mountpath = g_unix_mount_get_mount_path(mount1);
+
+          LOG_INFO("%s: %s '%s'", "mount", N_("path unmounted"), mountpath);
+
+          m_file = g_file_new_for_path(mountpath);
+          if (!g_file_has_parent(m_file, NULL))
+            {
+              LOG_DEBUG("%s: %s", "mount", N_("path has no parent"));
+
+              g_object_unref(m_file);
+
+              continue;
+            }
+
+          for (item3 = app->watchers; item3; item3 = item3->next)
+            {
+              watcher = (watcher_t *) item3->data;
+
+              w_file = g_file_new_for_path(watcher->path);
+              if (g_file_equal(m_file, w_file))
+                {
+                  LOG_DEBUG("%s: %s (%s)",
+                      watcher->name, N_("path matches"), mountpath);
+
+                  matched = TRUE;
+                }
+              else if (!g_file_has_prefix(m_file, w_file))
+                {
+                  LOG_DEBUG("%s: %s",
+                      watcher->name, N_("path has not the same prefix"));
+
+                  g_object_unref(w_file);
+
+                  continue;
+                }
+
+              if (!matched && watcher->recursive)
+                {
+                  g_hash_table_iter_init(&iter, watcher->monitors);
+                  while (g_hash_table_iter_next(&iter, &key, &value))
+                    {
+                      path = (gchar *) key;
+
+                      w_file = g_file_new_for_path(path);
+
+                      if (g_file_equal(w_file, m_file))
+                        {
+                          matched = TRUE;
+
+                          LOG_DEBUG("%s: %s (%s)",
+                              watcher->name, N_("path matches"), mountpath);
+
+                          break;
+                        }
+                    }
+                }
+
+              if (matched)
+                {
+                  parent = g_file_new_for_path(watcher->path);
+
+                  event = (watcher_event_t *) g_new0(watcher_event_t, 1);
+                  event->event = g_strdup(CONFIG_KEY_WATCHER_EVENT_UNMOUNTED);
+                  event->file = g_file_get_path(m_file);
+                  event->rfile = g_file_get_relative_path(parent, m_file);
+
+                  if (watcher->recursive)
+                    {
+                      depth = 1;
+
+                      for (top = g_file_dup(m_file), depth = 1;
+                          !g_file_equal(top, parent)
+                              && !g_file_has_parent(top, parent);
+                          top = tmp, depth++)
+                        {
+                          tmp = g_file_get_parent(top);
+
+                          g_object_unref(top);
+                        }
+
+                      g_object_unref(top);
+
+                      LOG_DEBUG("%s: file depth to watcher path is '%d'",
+                          watcher->name, depth);
+                    }
+
+                  g_object_unref(parent);
+
+                  if (watcher->recursive)
+                    {
+                      watcher_remove_monitor_for_recursive_path(watcher,
+                          event->file);
+                      watcher_add_monitor_for_recursive_path(watcher,
+                          event->file, depth);
+                    }
+                  else
+                    {
+                      watcher_remove_monitor_for_path(watcher, watcher->path);
+                      watcher_add_monitor_for_path(watcher, watcher->path);
+                    }
+
+                  LOG_INFO("%s: %s", watcher->name, N_("watcher updated"));
+
+                  if (!watcher_event_test(watcher, event))
+                    {
+                      LOG_DEBUG("%s: %s (event=%s, file=%s)",
+                          watcher->name, N_("event ignored"), event->event, event->file);
+
+                      g_free(event->event);
+                      g_free(event->file);
+                      g_free(event->rfile);
+                      g_free(event);
+
+                      return;
+                    }
+
+                  watcher_event_fired(watcher, event);
+
+                  g_free(event->event);
+                  g_free(event->file);
+                  g_free(event->rfile);
+                  g_free(event);
+                }
+
+              g_object_unref(w_file);
+            }
+
+          g_object_unref(m_file);
+        }
+    }
+
+  for (item1 = mounts, found = FALSE, matched = FALSE; item1;
+      item1 = item1->next, found = FALSE, matched = FALSE)
+    {
+      mount1 = (GUnixMountEntry *) item1->data;
+
+      for (item2 = app->mounts; item2; item2 = item2->next)
+        {
+          mount2 = (GUnixMountEntry *) item2->data;
+
+          if (g_unix_mount_compare(mount1, mount2) == 0)
+            {
+              found = TRUE;
+
+              break;
+            }
+        }
+
+      if (!found)
+        {
+          mountpath = g_unix_mount_get_mount_path(mount1);
+
+          LOG_INFO("%s: %s '%s'", "mount", N_("path mounted"), mountpath);
+
+          m_file = g_file_new_for_path(mountpath);
+          if (!g_file_has_parent(m_file, NULL))
+            {
+              LOG_DEBUG("%s: %s", "mount", N_("path has no parent"));
+
+              g_object_unref(m_file);
+
+              continue;
+            }
+
+          for (item3 = app->watchers; item3; item3 = item3->next)
+            {
+              watcher = (watcher_t *) item3->data;
+
+              w_file = g_file_new_for_path(watcher->path);
+              if (g_file_equal(m_file, w_file))
+                {
+                  LOG_DEBUG("%s: %s (%s)",
+                      watcher->name, N_("path matches"), mountpath);
+
+                  matched = TRUE;
+                }
+              else if (!g_file_has_prefix(m_file, w_file))
+                {
+                  LOG_DEBUG("%s: %s",
+                      watcher->name, N_("path has not the same prefix"));
+
+                  g_object_unref(w_file);
+
+                  continue;
+                }
+
+              if (!matched && watcher->recursive)
+                {
+                  g_hash_table_iter_init(&iter, watcher->monitors);
+                  while (g_hash_table_iter_next(&iter, &key, &value))
+                    {
+                      path = (gchar *) key;
+
+                      w_file = g_file_new_for_path(path);
+
+                      if (g_file_equal(w_file, m_file))
+                        {
+                          matched = TRUE;
+
+                          LOG_DEBUG("%s: %s (%s)",
+                              watcher->name, N_("path matches"), mountpath);
+
+                          break;
+                        }
+                    }
+                }
+
+              if (matched)
+                {
+                  parent = g_file_new_for_path(watcher->path);
+
+                  event = (watcher_event_t *) g_new0(watcher_event_t, 1);
+                  event->event = g_strdup(CONFIG_KEY_WATCHER_EVENT_MOUNTED);
+                  event->file = g_file_get_path(m_file);
+                  event->rfile = g_file_get_relative_path(parent, m_file);
+
+                  if (watcher->recursive)
+                    {
+                      depth = 1;
+
+                      for (top = g_file_dup(m_file), depth = 1;
+                          !g_file_equal(top, parent)
+                              && !g_file_has_parent(top, parent);
+                          top = tmp, depth++)
+                        {
+                          tmp = g_file_get_parent(top);
+
+                          g_object_unref(top);
+                        }
+
+                      g_object_unref(top);
+
+                      LOG_DEBUG("%s: file depth to watcher path is '%d'",
+                          watcher->name, depth);
+                    }
+
+                  g_object_unref(parent);
+
+                  if (watcher->recursive)
+                    {
+                      watcher_remove_monitor_for_recursive_path(watcher,
+                          event->file);
+                      watcher_add_monitor_for_recursive_path(watcher,
+                          event->file, depth);
+                    }
+                  else
+                    {
+                      watcher_remove_monitor_for_path(watcher, watcher->path);
+                      watcher_add_monitor_for_path(watcher, watcher->path);
+                    }
+
+                  LOG_INFO("%s: %s", watcher->name, N_("watcher updated"));
+
+                  if (!watcher_event_test(watcher, event))
+                    {
+                      LOG_DEBUG("%s: %s (event=%s, file=%s)",
+                          watcher->name, N_("event ignored"), event->event, event->file);
+
+                      g_free(event->event);
+                      g_free(event->file);
+                      g_free(event->rfile);
+                      g_free(event);
+
+                      return;
+                    }
+
+                  watcher_event_fired(watcher, event);
+
+                  g_free(event->event);
+                  g_free(event->file);
+                  g_free(event->rfile);
+                  g_free(event);
+                }
+
+              g_object_unref(w_file);
+            }
+
+          g_object_unref(m_file);
+        }
+    }
+
+  for (item1 = app->mounts; item1; item1 = item1->next)
+    {
+      mount1 = (GUnixMountEntry *) item1->data;
+
+      g_unix_mount_free(mount1);
+    }
+
+  app->mounts = mounts;
+}
+
+gboolean
+watcher_add_monitor_for_path(const watcher_t *watcher, const gchar *path)
+{
+  GFile *file;
+  GFileMonitor *monitor;
+  GError *error = NULL;
+
+  LOG_DEBUG("%s: %s (path=%s)",
+      watcher->name, N_("creating file monitor for path"), path);
+
+  file = g_file_new_for_path(path);
+
+  monitor = g_file_monitor(file, G_FILE_MONITOR_NONE, NULL, &error);
+  g_object_unref(file);
+  if (error)
+    {
+      LOG_ERROR("%s: %s (path=%s)",
+          watcher->name, N_("failed to create file monitor"), error->message);
+
+      g_error_free(error);
+      error = NULL;
+
+      return FALSE;
+    }
+
+  g_hash_table_insert(watcher->monitors, g_strdup(path), monitor);
+
+  g_signal_connect(monitor, "changed", G_CALLBACK(watcher_event),
+      (gpointer)watcher);
+
+  return TRUE;
+}
+
+gboolean
+watcher_add_monitor_for_recursive_path(const watcher_t *watcher,
+    const gchar *path, guint depth)
+{
+  GFile *file;
+  GFileEnumerator *enumerator;
+  GFileInfo *info;
+  gchar *child_path;
+  GError *error = NULL;
+
+  if ((watcher->maxdepth > 0) && (depth > watcher->maxdepth))
+    {
+      LOG_DEBUG("%s: %s (depth=%d, path=%s)",
+          watcher->name, N_("maximum depth of recursion reached"), depth, path);
+
+      return TRUE;
+    }
+
+  if (!watcher_add_monitor_for_path(watcher, path))
+    return FALSE;
+
+  file = g_file_new_for_path(path);
+
+  enumerator = g_file_enumerate_children(file, "standard::type,standard::name",
+      G_FILE_QUERY_INFO_NONE, NULL, &error);
+  g_object_unref(file);
+  if (error)
+    {
+      LOG_ERROR("%s: %s (error=%s)",
+          watcher->name, N_("failed to create file enumerator"), error->message);
+
+      g_error_free(error);
+      error = NULL;
+
+      return FALSE;
+    }
+
+  while ((info = g_file_enumerator_next_file(enumerator, NULL, &error)) != NULL)
+    {
+      if (g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY)
+        {
+          child_path = g_build_path(G_DIR_SEPARATOR_S, path,
+              g_file_info_get_name(info), NULL);
+
+          if (!watcher_add_monitor_for_recursive_path(watcher, child_path,
+              depth + 1))
+            {
+              g_free(child_path);
+              g_object_unref(info);
+              g_object_unref(enumerator);
+
+              return FALSE;
+            }
+
+          g_free(child_path);
+        }
+
+      g_object_unref(info);
+    }
+
+  g_object_unref(enumerator);
+  if (error)
+    {
+      LOG_DEBUG("%s: %s (%s)",
+          watcher->name, N_("failed to iterate during file enumeration"), error->message);
+
+      g_error_free(error);
+      error = NULL;
+
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+void
+watcher_remove_monitor_for_path(const watcher_t *watcher, const gchar *path)
+{
+  GFileMonitor *w_monitor;
+  gchar *w_path;
+  GHashTableIter iter;
+  gpointer key, value;
+
+  LOG_DEBUG("%s: %s (path=%s)",
+      watcher->name, N_("removing file monitor for path"), path);
+
+  g_hash_table_iter_init(&iter, watcher->monitors);
+  while (g_hash_table_iter_next(&iter, &key, &value))
+    {
+      w_path = (gchar *) key;
+      w_monitor = (GFileMonitor *) value;
+
+      if (g_strcmp0(w_path, path) == 0)
+        {
+          if (!g_file_monitor_is_cancelled(w_monitor))
+            {
+              g_file_monitor_cancel(w_monitor);
+
+              LOG_DEBUG("%s: %s (%s)",
+                  watcher->name, N_("file monitor cancelled"), w_path);
+            }
+          else
+            {
+              LOG_DEBUG("%s: %s (%s)",
+                  watcher->name, N_("file monitor already cancelled"), w_path);
+            }
+
+          g_hash_table_iter_remove(&iter);
+
+          g_free(w_path);
+          g_object_unref(w_path);
+
+          break;
+        }
+    }
+}
+
+void
+watcher_remove_monitor_for_recursive_path(const watcher_t *watcher,
+    const gchar *path)
+{
+  GFile *w_file, *file;
+  GFileMonitor *w_monitor;
+  gchar *w_path;
+  GHashTableIter iter;
+  gpointer key, value;
+
+  LOG_DEBUG("%s: %s (path=%s)",
+      watcher->name, N_("removing file monitors for recursive path"), path);
+
+  file = g_file_new_for_path(path);
+
+  g_hash_table_iter_init(&iter, watcher->monitors);
+  while (g_hash_table_iter_next(&iter, &key, &value))
+    {
+      w_path = (gchar *) key;
+      w_monitor = (GFileMonitor *) value;
+
+      if (g_strcmp0(w_path, watcher->path) == 0)
+        continue;
+
+      w_file = g_file_new_for_path(w_path);
+
+      if (g_file_equal(w_file, file) || g_file_has_prefix(w_file, file))
+        {
+          if (!g_file_monitor_is_cancelled(w_monitor))
+            {
+              g_file_monitor_cancel(w_monitor);
+
+              LOG_DEBUG("%s: %s (%s)",
+                  watcher->name, N_("file monitor cancelled"), w_path);
+            }
+          else
+            {
+              LOG_DEBUG("%s: %s (%s)",
+                  watcher->name, N_("file monitor already cancelled"), w_path);
+            }
+
+          g_hash_table_iter_remove(&iter);
+
+          g_object_unref(w_file);
+          g_free(w_path);
+          g_object_unref(w_monitor);
+        }
+    }
+
+  g_object_unref(file);
+}
+
+void
+watcher_destroy_monitors(const watcher_t *watcher)
+{
+  GFileMonitor *monitor;
+  gchar *path;
+  GHashTableIter iter;
+  gpointer key, value;
+
+  g_hash_table_iter_init(&iter, watcher->monitors);
+  while (g_hash_table_iter_next(&iter, &key, &value))
+    {
+      path = (gchar *) key;
+      monitor = (GFileMonitor *) value;
+
+      if (!g_file_monitor_is_cancelled(monitor))
+        {
+          g_file_monitor_cancel(monitor);
+
+          LOG_DEBUG("%s: %s (%s)",
+              watcher->name, N_("file monitor cancelled"), path);
+        }
+      else
+        {
+          LOG_DEBUG("%s: %s (%s)",
+              watcher->name, N_("file monitor already cancelled"), path);
+        }
+
+      g_free(path);
+      g_object_unref(monitor);
+    }
+
+  g_hash_table_remove_all(watcher->monitors);
+}
+
+void
+watcher_list_monitors(const watcher_t *watcher)
+{
+  GFileMonitor *monitor;
+  gchar *path;
+  GHashTableIter iter;
+  gpointer key, value;
+
+  LOG_INFO("%s: %s", watcher->name, N_("listing monitors"));
+
+  g_hash_table_iter_init(&iter, watcher->monitors);
+  while (g_hash_table_iter_next(&iter, &key, &value))
+    {
+      path = (gchar *) key;
+      monitor = (GFileMonitor *) value;
+
+      LOG_INFO("%s: +-- path=%s", watcher->name, path);
+    }
+
+  LOG_INFO("%s: %s", watcher->name, N_("end of list"));
+}
+
+void
 watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
     GFileMonitorEvent event_type, gpointer user_data)
 {
-  GFile *parent;
+  GFile *parent, *top, *tmp;
+  gboolean depth;
   watcher_t *watcher;
   watcher_event_t *event;
 
@@ -636,13 +1431,33 @@ watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
 
   parent = g_file_new_for_path(watcher->path);
 
-  event = (watcher_event_t *)g_new0(watcher_event_t, 1);
+  event = (watcher_event_t *) g_new0(watcher_event_t, 1);
   event->file = g_file_get_path(file);
   event->rfile = g_file_get_relative_path(parent, file);
+  if (!event->rfile)
+    event->rfile = g_strdup("");
+
+  if (watcher->recursive)
+    {
+      depth = 1;
+
+      for (top = g_file_dup(file), depth = 1;
+          !g_file_equal(top, parent) && !g_file_has_parent(top, parent); top =
+              tmp, depth++)
+        {
+          tmp = g_file_get_parent(top);
+
+          g_object_unref(top);
+        }
+
+      g_object_unref(top);
+
+      LOG_DEBUG("%s: file depth to watcher path is '%d'", watcher->name, depth);
+    }
 
   g_object_unref(parent);
 
-  LOG_DEBUG("%s: %s (event_type=%d, file:%s)",
+  LOG_DEBUG("%s: %s (event_type=%d, file=%s)",
       watcher->name, N_("watcher event received"), event_type, event->file);
 
   switch (event_type)
@@ -675,13 +1490,6 @@ watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
       break;
     }
 
-  case G_FILE_MONITOR_EVENT_UNMOUNTED:
-    {
-      event->event = g_strdup(CONFIG_KEY_WATCHER_EVENT_UNMOUNTED);
-
-      break;
-    }
-
   default:
     {
       LOG_DEBUG("%s: %s (event_type=%d)",
@@ -697,10 +1505,16 @@ watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
     }
     }
 
-  if (!watcher_event_check(watcher, event))
+  if ((event_type == G_FILE_MONITOR_EVENT_DELETED) && watcher->recursive
+      && (g_strcmp0(event->file, watcher->path) != 0))
     {
-      LOG_DEBUG("%s: %s (file=%s)",
-          watcher->name, N_("event ignored"), event->rfile);
+      watcher_remove_monitor_for_recursive_path(watcher, event->file);
+    }
+
+  if (!watcher_event_test(watcher, event))
+    {
+      LOG_DEBUG("%s: %s (event=%s, file=%s)",
+          watcher->name, N_("event ignored"), event->event, event->file);
 
       g_free(event->event);
       g_free(event->file);
@@ -708,6 +1522,12 @@ watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
       g_free(event);
 
       return;
+    }
+
+  if (event_type == G_FILE_MONITOR_EVENT_CREATED && watcher->recursive
+      && g_file_test(event->file, G_FILE_TEST_IS_DIR) && (g_strcmp0(event->file, watcher->path) != 0))
+    {
+      watcher_add_monitor_for_recursive_path(watcher, event->file, depth);
     }
 
   watcher_event_fired(watcher, event);
@@ -719,8 +1539,13 @@ watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
 }
 
 gboolean
-watcher_event_check(watcher_t *watcher, watcher_event_t *event)
+watcher_event_test(watcher_t *watcher, watcher_event_t *event)
 {
+#ifndef GStatBuf
+  struct stat st;
+#else
+  GStatBuf st;
+#endif
   gboolean found = FALSE;
   gboolean include = TRUE;
   gint i;
@@ -738,6 +1563,152 @@ watcher_event_check(watcher_t *watcher, watcher_event_t *event)
   if (!found)
     return FALSE;
 
+  if (g_stat(event->file, &st) != 0)
+    {
+      LOG_ERROR("%s", N_("failed to stat file"));
+
+      return FALSE;
+    }
+
+  if (watcher->type)
+    {
+      switch (st.st_mode)
+        {
+      case S_IFBLK:
+        {
+          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_BLOCK) != 0)
+            {
+              LOG_DEBUG("%s", N_("invalid type"));
+
+              return FALSE;
+            }
+
+          break;
+        }
+
+      case S_IFCHR:
+        {
+          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_CHARACTER) != 0)
+            {
+              LOG_DEBUG("%s", N_("invalid type"));
+
+              return FALSE;
+            }
+
+          break;
+        }
+
+      case S_IFDIR:
+        {
+          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_DIRECTORY) != 0)
+            {
+              LOG_DEBUG("%s", N_("invalid type"));
+
+              return FALSE;
+            }
+
+          break;
+        }
+
+      case S_IFREG:
+        {
+          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_REGULAR) != 0)
+            {
+              LOG_DEBUG("%s", N_("invalid type"));
+
+              return FALSE;
+            }
+
+          break;
+        }
+
+      case S_IFLNK:
+        {
+          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_SYMBOLICLINK) != 0)
+            {
+              LOG_DEBUG("%s", N_("invalid type"));
+
+              return FALSE;
+            }
+
+          break;
+        }
+
+      case S_IFIFO:
+        {
+          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_FIFO) != 0)
+            {
+              LOG_DEBUG("%s", N_("invalid type"));
+
+              return FALSE;
+            }
+
+          break;
+        }
+
+      case S_IFSOCK:
+        {
+          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_SOCKET) != 0)
+            {
+              LOG_DEBUG("%s", N_("invalid type"));
+
+              return FALSE;
+            }
+
+          break;
+        }
+
+      default:
+        {
+          LOG_DEBUG("%s", N_("invalid type"));
+
+          return FALSE;
+
+          break;
+        }
+        }
+    }
+
+  if (watcher->user)
+    {
+      struct passwd *pwd;
+
+      pwd = getpwnam(watcher->user);
+      if (!pwd)
+        {
+          LOG_DEBUG("%s", N_("failed to retrieve user ID"));
+
+          return FALSE;
+        }
+
+      if (pwd->pw_uid != st.st_uid)
+        {
+          LOG_DEBUG("%s", N_("invalid user"));
+
+          return FALSE;
+        }
+    }
+
+  if (watcher->group)
+    {
+      struct passwd *pwd;
+
+      pwd = getpwnam(watcher->group);
+      if (!pwd)
+        {
+          LOG_DEBUG("%s", N_("failed to retrieve group ID"));
+
+          return FALSE;
+        }
+
+      if (pwd->pw_gid != st.st_gid)
+        {
+          LOG_DEBUG("%s", N_("invalid group"));
+
+          return FALSE;
+        }
+    }
+
   if (watcher->includes)
     {
       include = FALSE;
@@ -746,8 +1717,7 @@ watcher_event_check(watcher_t *watcher, watcher_event_t *event)
         {
           if (g_pattern_match_simple(watcher->includes[i], event->rfile))
             {
-              LOG_INFO("%s",
-                  N_("relative filename found in include list"));
+              LOG_DEBUG("%s", N_("relative filename found in include list"));
 
               return TRUE;
             }
@@ -760,8 +1730,7 @@ watcher_event_check(watcher_t *watcher, watcher_event_t *event)
         {
           if (g_pattern_match_simple(watcher->excludes[i], event->rfile))
             {
-              LOG_INFO("%s",
-                  N_("relative filename found in exclude list"));
+              LOG_DEBUG("%s", N_("relative filename found in exclude list"));
 
               return FALSE;
             }
@@ -779,7 +1748,7 @@ watcher_event_fired(watcher_t *watcher, watcher_event_t *event)
   gchar *cmd, *tmp;
 
   LOG_INFO( "%s: %s (event=%s, file=%s)",
-      watcher->name, N_("watcher event fired"), event->event, event->rfile);
+      watcher->name, N_("watcher event fired"), event->event, event->file);
 
   regex = g_regex_new("\\" CONFIG_KEY_WATCHER_COMMAND_KEY_NAME, 0, 0, &error);
   cmd = g_regex_replace_literal(regex, watcher->command, -1, 0, watcher->name,
@@ -926,17 +1895,33 @@ sigterm(gint sig)
 }
 
 void
+sigusr1(gint sig)
+{
+  LOG_INFO("%s", N_("SIGUSR1 received, starting watchers"));
+
+  start_monitors();
+  list_monitors();
+}
+
+void
+sigusr2(gint sig)
+{
+  LOG_INFO("%s", N_("SIGUSR2 received, stopping watchers"));
+
+  stop_monitors();
+}
+
+void
 cleanup(void)
 {
   GError *error = NULL;
   gboolean daemon;
 
-  if (app->logger)
-    LOG_DEBUG("%s", N_("cleanup"));
+  LOG_DEBUG("%s", N_("cleanup"));
 
   g_main_loop_quit(app->loop);
 
-  stop_watchers();
+  stop_monitors();
 
   if (app->settings && app->daemon)
     {
@@ -988,10 +1973,12 @@ cleanup(void)
 
           g_free(watcher->name);
           g_free(watcher->path);
+          g_free(watcher->type);
           g_strfreev(watcher->events);
           g_free(watcher->command);
           g_strfreev(watcher->includes);
           g_strfreev(watcher->excludes);
+          g_hash_table_destroy(watcher->monitors);
           g_free(watcher);
         }
 
@@ -1015,6 +2002,11 @@ main(gint argc, gchar *argv[])
   setlocale(LC_ALL, "");
   bindtextdomain(PACKAGE, LOCALEDIR);
   textdomain(PACKAGE);
+
+  if (glib_check_version(2, 6, 0))
+    {
+      g_error(N_("GLib version 2.6.0 or above is needed"));
+    }
 
 #ifdef DEBUG
   g_type_init_with_debug_flags(G_TYPE_DEBUG_MASK);
@@ -1105,8 +2097,10 @@ main(gint argc, gchar *argv[])
   signal(SIGHUP, sighup);
   signal(SIGINT, sigint);
   signal(SIGTERM, sigterm);
+  signal(SIGUSR1, sigusr1);
+  signal(SIGUSR2, sigusr2);
 
-  start_watchers();
+  start_monitors();
 
   g_main_loop_run(app->loop);
 

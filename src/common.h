@@ -32,5 +32,6 @@
 #include <glib/gprintf.h>
 #include <glib/gstdio.h>
 #include <gio/gio.h>
+#include <gio/gunixmounts.h>
 
 #endif /* COMMON_H_ */

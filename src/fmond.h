@@ -56,11 +56,26 @@
 #define CONFIG_KEY_MAIN_SYSLOGFACILITY                  "SyslogFacility"
 #define CONFIG_KEY_MAIN_SYSLOGFACILITY_DEFAULT          "DAEMON";
 #define CONFIG_KEY_WATCHER_PATH                         "Path"
+#define CONFIG_KEY_WATCHER_RECURSIVE                    "Recursive"
+#define CONFIG_KEY_WATCHER_RECURSIVE_DEFAULT            0
+#define CONFIG_KEY_WATCHER_MAXDEPTH                     "MaxDepth"
+#define CONFIG_KEY_WATCHER_MAXDEPTH_DEFAULT             0
+#define CONFIG_KEY_WATCHER_TYPE                         "Type"
+#define CONFIG_KEY_WATCHER_TYPE_BLOCK                   "b"
+#define CONFIG_KEY_WATCHER_TYPE_CHARACTER               "c"
+#define CONFIG_KEY_WATCHER_TYPE_DIRECTORY               "d"
+#define CONFIG_KEY_WATCHER_TYPE_FIFO                    "p"
+#define CONFIG_KEY_WATCHER_TYPE_REGULAR                 "f"
+#define CONFIG_KEY_WATCHER_TYPE_SYMBOLICLINK            "l"
+#define CONFIG_KEY_WATCHER_TYPE_SOCKET                  "s"
+#define CONFIG_KEY_WATCHER_USER                         "User"
+#define CONFIG_KEY_WATCHER_GROUP                        "Group"
 #define CONFIG_KEY_WATCHER_EVENTS                       "Events"
 #define CONFIG_KEY_WATCHER_EVENT_CHANGED                "changed"
 #define CONFIG_KEY_WATCHER_EVENT_CREATED                "created"
 #define CONFIG_KEY_WATCHER_EVENT_DELETED                "deleted"
 #define CONFIG_KEY_WATCHER_EVENT_ATTRIBUTECHANGED       "attribute_changed"
+#define CONFIG_KEY_WATCHER_EVENT_MOUNTED                "mounted"
 #define CONFIG_KEY_WATCHER_EVENT_UNMOUNTED              "unmounted"
 #define CONFIG_KEY_WATCHER_COMMAND                      "Command"
 #define CONFIG_KEY_WATCHER_COMMAND_KEY_NAME             "$name"
@@ -77,6 +92,8 @@ typedef struct _application_t
   gboolean daemon;
   logger_t *logger;
   GKeyFile *settings;
+  GUnixMountMonitor *monitor;
+  GList *mounts;
   GSList *watchers;
   gboolean started;
   gchar *config_file;

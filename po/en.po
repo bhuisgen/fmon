@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fmond 0.1\n"
 "Report-Msgid-Bugs-To: bhuisgen@hbis.fr\n"
-"POT-Creation-Date: 2012-03-02 23:40+0100\n"
+"POT-Creation-Date: 2012-03-12 20:47+0100\n"
 "PO-Revision-Date: 2012-02-22 23:56+0200\n"
 "Last-Translator: Boris HUISGEN <bhuisgen@hbis.fr>\n"
 "Language-Team: English <en@li.org>\n"
@@ -16,159 +16,293 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/fmond.c:146 src/fmond.c:160 src/fmond.c:168 src/fmond.c:210
-#: src/fmond.c:221 src/fmond.c:254
+#: src/fmond.c:182 src/fmond.c:196 src/fmond.c:204 src/fmond.c:245
+#: src/fmond.c:255 src/fmond.c:287
 msgid "error in configuration file"
 msgstr ""
 
-#: src/fmond.c:161 src/fmond.c:211
+#: src/fmond.c:196 src/fmond.c:245
 msgid "no group 'main'"
 msgstr ""
 
-#: src/fmond.c:169 src/fmond.c:222
+#: src/fmond.c:205 src/fmond.c:255
 msgid "the first group is not 'main'"
 msgstr ""
 
-#: src/fmond.c:194
+#: src/fmond.c:230
 msgid "error in configuration file, aborting reload"
 msgstr ""
 
-#: src/fmond.c:254
+#: src/fmond.c:287
 msgid "no watch group found"
 msgstr ""
 
-#: src/fmond.c:275
+#: src/fmond.c:308
 msgid "invalid path"
 msgstr ""
 
-#: src/fmond.c:287
+#: src/fmond.c:320
 msgid "file/path doesn't exist"
 msgstr ""
 
-#: src/fmond.c:301
+#: src/fmond.c:334
+msgid "bad permissions on file"
+msgstr ""
+
+#: src/fmond.c:344
+msgid "bad permissions on path"
+msgstr ""
+
+#: src/fmond.c:364
+msgid "recursion is enabled but path is not a directory"
+msgstr ""
+
+#: src/fmond.c:386
+msgid "invalid maximum depth of recursion"
+msgstr ""
+
+#: src/fmond.c:414 src/fmond.c:1581 src/fmond.c:1593 src/fmond.c:1605
+#: src/fmond.c:1617 src/fmond.c:1629 src/fmond.c:1641 src/fmond.c:1653
+#: src/fmond.c:1663
+msgid "invalid type"
+msgstr ""
+
+#: src/fmond.c:447
 msgid "no event to watch"
 msgstr ""
 
-#: src/fmond.c:327
+#: src/fmond.c:474
 msgid "invalid event"
 msgstr ""
 
-#: src/fmond.c:343
+#: src/fmond.c:491
 msgid "invalid command"
 msgstr ""
 
-#: src/fmond.c:559
+#: src/fmond.c:710
+msgid "watchers already started"
+msgstr ""
+
+#: src/fmond.c:715
 msgid "starting watchers"
 msgstr ""
 
-#: src/fmond.c:574
-msgid "failed to create file monitor"
+#: src/fmond.c:719
+msgid "mount watcher started"
 msgstr ""
 
-#: src/fmond.c:576
-msgid "failed to start watcher"
-msgstr ""
-
-#: src/fmond.c:587
+#: src/fmond.c:734
 msgid "watcher started"
 msgstr ""
 
-#: src/fmond.c:602
+#: src/fmond.c:750
+msgid "watchers already stopped"
+msgstr ""
+
+#: src/fmond.c:755
 msgid "stopping watchers"
 msgstr ""
 
-#: src/fmond.c:613
-msgid "file monitor already cancelled"
+#: src/fmond.c:759
+msgid "mount watcher stopped"
 msgstr ""
 
-#: src/fmond.c:617
+#: src/fmond.c:767
 msgid "watcher stopped"
 msgstr ""
 
-#: src/fmond.c:646
-msgid "watcher event received"
+#: src/fmond.c:781
+msgid "watchers stopped"
 msgstr ""
 
-#: src/fmond.c:688
-msgid "unknown event"
+#: src/fmond.c:786 src/fmond.c:1404
+msgid "listing monitors"
 msgstr ""
 
-#: src/fmond.c:703
+#: src/fmond.c:846
+msgid "mount event received"
+msgstr ""
+
+#: src/fmond.c:871
+msgid "path unmounted"
+msgstr ""
+
+#: src/fmond.c:876 src/fmond.c:1026
+msgid "path has no parent"
+msgstr ""
+
+#: src/fmond.c:891 src/fmond.c:919 src/fmond.c:1041 src/fmond.c:1069
+msgid "path matches"
+msgstr ""
+
+#: src/fmond.c:898 src/fmond.c:1048
+msgid "path has not the same prefix"
+msgstr ""
+
+#: src/fmond.c:970 src/fmond.c:1120
+msgid "watcher updated"
+msgstr ""
+
+#: src/fmond.c:975 src/fmond.c:1125 src/fmond.c:1517
 msgid "event ignored"
 msgstr ""
 
-#: src/fmond.c:751
+#: src/fmond.c:1021
+msgid "path mounted"
+msgstr ""
+
+#: src/fmond.c:1168
+msgid "creating file monitor for path"
+msgstr ""
+
+#: src/fmond.c:1177
+msgid "failed to create file monitor"
+msgstr ""
+
+#: src/fmond.c:1206
+msgid "maximum depth of recursion reached"
+msgstr ""
+
+#: src/fmond.c:1222
+msgid "failed to create file enumerator"
+msgstr ""
+
+#: src/fmond.c:1257
+msgid "failed to iterate during file enumeration"
+msgstr ""
+
+#: src/fmond.c:1277
+msgid "removing file monitor for path"
+msgstr ""
+
+#: src/fmond.c:1292 src/fmond.c:1343 src/fmond.c:1381
+msgid "file monitor cancelled"
+msgstr ""
+
+#: src/fmond.c:1297 src/fmond.c:1348 src/fmond.c:1386
+msgid "file monitor already cancelled"
+msgstr ""
+
+#: src/fmond.c:1321
+msgid "removing file monitors for recursive path"
+msgstr ""
+
+#: src/fmond.c:1415
+msgid "end of list"
+msgstr ""
+
+#: src/fmond.c:1461
+msgid "watcher event received"
+msgstr ""
+
+#: src/fmond.c:1496
+msgid "unknown event"
+msgstr ""
+
+#: src/fmond.c:1568
+msgid "failed to stat file"
+msgstr ""
+
+#: src/fmond.c:1679
+msgid "failed to retrieve user ID"
+msgstr ""
+
+#: src/fmond.c:1686
+msgid "invalid user"
+msgstr ""
+
+#: src/fmond.c:1699
+msgid "failed to retrieve group ID"
+msgstr ""
+
+#: src/fmond.c:1706
+msgid "invalid group"
+msgstr ""
+
+#: src/fmond.c:1720
 msgid "relative filename found in include list"
 msgstr ""
 
-#: src/fmond.c:765
+#: src/fmond.c:1733
 msgid "relative filename found in exclude list"
 msgstr ""
 
-#: src/fmond.c:783
+#: src/fmond.c:1751
 msgid "watcher event fired"
 msgstr ""
 
-#: src/fmond.c:814
+#: src/fmond.c:1782
 msgid "executing command"
 msgstr ""
 
-#: src/fmond.c:821
+#: src/fmond.c:1789
 msgid "failed to execute command"
 msgstr ""
 
-#: src/fmond.c:853
+#: src/fmond.c:1821
 msgid "read configuration from file"
 msgstr ""
 
-#: src/fmond.c:853
+#: src/fmond.c:1821
 msgid "file"
 msgstr ""
 
-#: src/fmond.c:855
+#: src/fmond.c:1823
 msgid "set verbose output"
 msgstr ""
 
-#: src/fmond.c:857
+#: src/fmond.c:1825
 msgid "show version information"
 msgstr ""
 
-#: src/fmond.c:891
+#: src/fmond.c:1859
 msgid "The configuration file doesn't exist or cannot be read."
 msgstr ""
 
-#: src/fmond.c:902
+#: src/fmond.c:1870
 msgid "SIGPIPE received, continuing execution"
 msgstr ""
 
-#: src/fmond.c:908
+#: src/fmond.c:1876
 msgid "SIGHUP received, reloading configuration"
 msgstr ""
 
-#: src/fmond.c:916
+#: src/fmond.c:1884
 msgid "SIGINT received, exiting"
 msgstr ""
 
-#: src/fmond.c:924
+#: src/fmond.c:1892
 msgid "SIGTERM received, exiting"
 msgstr ""
 
-#: src/fmond.c:936
+#: src/fmond.c:1900
+msgid "SIGUSR1 received, starting watchers"
+msgstr ""
+
+#: src/fmond.c:1909
+msgid "SIGUSR2 received, stopping watchers"
+msgstr ""
+
+#: src/fmond.c:1920
 msgid "cleanup"
 msgstr ""
 
-#: src/fmond.c:971
+#: src/fmond.c:1955
 msgid "daemon stopped"
 msgstr ""
 
-#: src/fmond.c:1042
+#: src/fmond.c:2008
+msgid "GLib version 2.6.0 or above is needed"
+msgstr ""
+
+#: src/fmond.c:2033
 msgid "Failed to create events logger."
 msgstr ""
 
-#: src/fmond.c:1096
+#: src/fmond.c:2087
 msgid "failed to daemonize, error code"
 msgstr ""
 
-#: src/fmond.c:1102
+#: src/fmond.c:2093
 msgid "daemon started"
 msgstr ""
