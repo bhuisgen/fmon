@@ -33,7 +33,7 @@
 int
 daemonize(const char *pid_file, const char *user, const char *group)
 {
-  pid_t pid, ppid, sid;
+  pid_t pid, sid;
   int fd;
   int ret;
   char str_pid[12];
@@ -64,8 +64,6 @@ daemonize(const char *pid_file, const char *user, const char *group)
     return (-4);
   if (pid > 0)
     exit(EXIT_SUCCESS);
-
-  ppid = getppid();
 
   signal(SIGCHLD, SIG_DFL);
   signal(SIGTSTP, SIG_IGN);

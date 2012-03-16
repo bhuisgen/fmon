@@ -74,6 +74,9 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
+/* Define to 1 if you have the `strtol' function. */
+#undef HAVE_STRTOL
+
 /* Define to 1 if you have the <syslog.h> header file. */
 #undef HAVE_SYSLOG_H
 
@@ -149,6 +152,9 @@
 /* Version number of package */
 #undef VERSION
 
+/* Define to `int' if <sys/types.h> doesn't define. */
+#undef gid_t
+
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifndef __cplusplus
@@ -163,6 +169,9 @@
 
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
+
+/* Define to `int' if <sys/types.h> doesn't define. */
+#undef uid_t
 
 /* Define as `fork' if `vfork' does not work. */
 #undef vfork

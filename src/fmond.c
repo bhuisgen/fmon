@@ -26,6 +26,8 @@
 #include "log_syslog.h"
 
 #include <sys/types.h>
+#include <errno.h>
+#include <grp.h>
 #include <pwd.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -44,13 +46,15 @@ typedef struct _watcher_t
   gchar *name;
   gchar *path;
   gboolean recursive;
-  gint mindepth;
   gint maxdepth;
+  gchar *exec;
+  gboolean print;
+  gboolean print0;
+  gboolean mount;
   gchar *type;
   gchar *user;
   gchar *group;
   gchar **events;
-  gchar *command;
   gchar **includes;
   gchar **excludes;
   GHashTable *monitors;
@@ -284,7 +288,7 @@ init_watchers()
   if (len < 2)
     {
       g_printerr("%s: %s (%s)\n", app->config_file,
-          N_("error in configuration file"), N_("no watch group found"));
+          N_("error in configuration file"), N_("no watcher group found"));
 
       g_strfreev(groups);
 
@@ -333,6 +337,11 @@ init_watchers()
               g_printerr("%s: %s\n", watcher->name,
                   N_("bad permissions on file"));
 
+              g_free(watcher->path);
+              g_free(watcher->name);
+              g_free(watcher);
+              g_strfreev(groups);
+
               return NULL;
             }
         }
@@ -343,6 +352,11 @@ init_watchers()
               g_printerr("%s: %s\n", watcher->name,
                   N_("bad permissions on path"));
 
+              g_free(watcher->path);
+              g_free(watcher->name);
+              g_free(watcher);
+              g_strfreev(groups);
+
               return NULL;
             }
         }
@@ -352,6 +366,7 @@ init_watchers()
       if (error)
         {
           watcher->recursive = CONFIG_KEY_WATCHER_RECURSIVE_DEFAULT;
+
           g_error_free(error);
           error = NULL;
         }
@@ -394,6 +409,77 @@ init_watchers()
             }
         }
 
+      watcher->events = g_key_file_get_string_list(app->settings, watcher->name,
+          CONFIG_KEY_WATCHER_EVENTS, &len, &error);
+      if (error)
+        {
+          g_error_free(error);
+          error = NULL;
+        }
+      if (watcher->events)
+        {
+          for (i = 0; watcher->events[i]; i++)
+            {
+              if ((g_strcmp0(watcher->events[i],
+                  CONFIG_KEY_WATCHER_EVENT_CHANGED) != 0)
+                  && (g_strcmp0(watcher->events[i],
+                      CONFIG_KEY_WATCHER_EVENT_CREATED) != 0)
+                  && (g_strcmp0(watcher->events[i],
+                      CONFIG_KEY_WATCHER_EVENT_DELETED) != 0)
+                  && (g_strcmp0(watcher->events[i],
+                      CONFIG_KEY_WATCHER_EVENT_ATTRIBUTECHANGED) != 0)
+                  && (g_strcmp0(watcher->events[i],
+                      CONFIG_KEY_WATCHER_EVENT_MOUNTED) != 0)
+                  && (g_strcmp0(watcher->events[i],
+                      CONFIG_KEY_WATCHER_EVENT_UNMOUNTED) != 0))
+                {
+                  g_printerr("%s: %s\n", watcher->name, N_("invalid event"));
+
+                  g_strfreev(watcher->events);
+                  g_free(watcher->path);
+                  g_free(watcher->name);
+                  g_free(watcher);
+                  g_strfreev(groups);
+
+                  return NULL;
+                }
+            }
+        }
+
+      watcher->exec = g_key_file_get_string(app->settings, watcher->name,
+          CONFIG_KEY_WATCHER_EXEC, &error);
+      if (error)
+        {
+          g_error_free(error);
+          error = NULL;
+        }
+
+      watcher->print = g_key_file_get_boolean(app->settings, watcher->name,
+          CONFIG_KEY_WATCHER_PRINT, &error);
+      if (error)
+        {
+          g_error_free(error);
+          error = NULL;
+        }
+
+      watcher->print0 = g_key_file_get_boolean(app->settings, watcher->name,
+          CONFIG_KEY_WATCHER_PRINT0, &error);
+      if (error)
+        {
+          g_error_free(error);
+          error = NULL;
+        }
+
+      watcher->mount = g_key_file_get_boolean(app->settings, watcher->name,
+          CONFIG_KEY_WATCHER_MOUNT, &error);
+      if (error)
+        {
+          watcher->mount = CONFIG_KEY_WATCHER_MOUNT_DEFAULT;
+
+          g_error_free(error);
+          error = NULL;
+        }
+
       watcher->type = g_key_file_get_string(app->settings, watcher->name,
           CONFIG_KEY_WATCHER_TYPE, &error);
       if (error)
@@ -415,7 +501,7 @@ init_watchers()
 
           g_error_free(error);
           error = NULL;
-          g_free(watcher->type);
+          g_strfreev(watcher->events);
           g_free(watcher->path);
           g_free(watcher->name);
           g_free(watcher);
@@ -438,69 +524,6 @@ init_watchers()
         {
           g_error_free(error);
           error = NULL;
-        }
-
-      watcher->events = g_key_file_get_string_list(app->settings, watcher->name,
-          CONFIG_KEY_WATCHER_EVENTS, &len, &error);
-      if (error)
-        {
-          g_printerr("%s: %s\n", watcher->name, N_("no event to watch"));
-
-          g_error_free(error);
-          error = NULL;
-          g_free(watcher->type);
-          g_free(watcher->path);
-          g_free(watcher->name);
-          g_free(watcher);
-          g_strfreev(groups);
-
-          return NULL;
-        }
-      for (i = 0; watcher->events[i]; i++)
-        {
-          if ((g_strcmp0(watcher->events[i], CONFIG_KEY_WATCHER_EVENT_CHANGED)
-              != 0)
-              && (g_strcmp0(watcher->events[i],
-                  CONFIG_KEY_WATCHER_EVENT_CREATED) != 0)
-              && (g_strcmp0(watcher->events[i],
-                  CONFIG_KEY_WATCHER_EVENT_DELETED) != 0)
-              && (g_strcmp0(watcher->events[i],
-                  CONFIG_KEY_WATCHER_EVENT_ATTRIBUTECHANGED) != 0)
-              && (g_strcmp0(watcher->events[i],
-                  CONFIG_KEY_WATCHER_EVENT_MOUNTED) != 0)
-              && (g_strcmp0(watcher->events[i],
-                  CONFIG_KEY_WATCHER_EVENT_UNMOUNTED) != 0))
-            {
-              g_printerr("%s: %s\n", watcher->name, N_("invalid event"));
-
-              g_strfreev(watcher->events);
-              g_free(watcher->type);
-              g_free(watcher->path);
-              g_free(watcher->name);
-              g_free(watcher);
-              g_strfreev(groups);
-
-              return NULL;
-            }
-        }
-
-      watcher->command = g_key_file_get_string(app->settings, watcher->name,
-          CONFIG_KEY_WATCHER_COMMAND, &error);
-      if (error)
-        {
-          g_printerr("%s: %s (%s)\n", watcher->name, N_("invalid command"),
-              error->message);
-
-          g_error_free(error);
-          error = NULL;
-          g_strfreev(watcher->events);
-          g_free(watcher->type);
-          g_free(watcher->path);
-          g_free(watcher->name);
-          g_free(watcher);
-          g_strfreev(groups);
-
-          return NULL;
         }
 
       watcher->includes = g_key_file_get_string_list(app->settings,
@@ -551,16 +574,6 @@ init_logger()
       gint log_level;
       LoggerLevel level = LOGGER_LEVEL_NONE;
 
-      use_syslog = g_key_file_get_boolean(app->settings, CONFIG_GROUP_MAIN,
-          CONFIG_KEY_MAIN_USESYSLOG, &error);
-      if (error)
-        {
-          use_syslog = CONFIG_KEY_MAIN_USESYSLOG_DEFAULT;
-
-          g_error_free(error);
-          error = NULL;
-        }
-
       log_level = g_key_file_get_integer(app->settings, CONFIG_GROUP_MAIN,
           CONFIG_KEY_MAIN_LOGLEVEL, &error);
       if (error)
@@ -594,6 +607,16 @@ init_logger()
         break;
         }
 
+      use_syslog = g_key_file_get_boolean(app->settings, CONFIG_GROUP_MAIN,
+          CONFIG_KEY_MAIN_USESYSLOG, &error);
+      if (error)
+        {
+          use_syslog = CONFIG_KEY_MAIN_USESYSLOG_DEFAULT;
+
+          g_error_free(error);
+          error = NULL;
+        }
+
       if (use_syslog)
         {
           gchar *syslog_facility;
@@ -616,8 +639,8 @@ init_logger()
               return NULL;
             }
 
-          if (!log_handler_set_option(handler,
-              LOG_HANDLER_SYSLOG_OPTION_FACILITY, syslog_facility))
+          if (log_handler_set_option(handler,
+              LOG_HANDLER_SYSLOG_OPTION_FACILITY, syslog_facility) != 0)
             {
               log_handler_destroy(handler);
               g_free(syslog_facility);
@@ -657,8 +680,8 @@ init_logger()
               return NULL;
             }
 
-          if (!log_handler_set_option(handler, LOG_HANDLER_FILE_OPTION_LOGFILE,
-              log_file))
+          if (log_handler_set_option(handler, LOG_HANDLER_FILE_OPTION_LOGFILE,
+              log_file) != 0)
             {
               log_handler_destroy(handler);
               g_free(log_file);
@@ -683,11 +706,18 @@ init_logger()
       if (!handler)
         return NULL;
 
+      if (app->verbose)
+        {
 #ifdef DEBUG
-      logger = log_create_logger(handler, LOGGER_LEVEL_ALL);
+          logger = log_create_logger(handler, LOGGER_LEVEL_ALL);
 #else
-      logger = log_create_logger(handler, LOGGER_LEVEL_INFO);
+          logger = log_create_logger(handler, LOGGER_LEVEL_INFO);
 #endif
+        }
+      else
+        {
+          logger = log_create_logger(handler, LOGGER_LEVEL_NONE);
+        }
       if (!logger)
         {
           log_handler_destroy(handler);
@@ -801,7 +831,8 @@ create_mount_monitor()
   app->monitor = g_unix_mount_monitor_new();
   app->mounts = g_unix_mounts_get(NULL);
 
-  g_signal_connect(app->monitor, "mounts-changed", G_CALLBACK(mount_event), NULL);
+  g_signal_connect(app->monitor, "mounts-changed", G_CALLBACK(mount_event),
+      NULL);
 }
 
 void
@@ -819,7 +850,7 @@ destroy_mount_monitor()
 
   for (item = app->mounts; item; item = item->next)
     {
-      entry = (GUnixMountEntry *)item->data;
+      entry = (GUnixMountEntry *) item->data;
 
       g_unix_mount_free(entry);
     }
@@ -928,6 +959,7 @@ mount_event(GUnixMountMonitor *monitor, gpointer user_data)
                   parent = g_file_new_for_path(watcher->path);
 
                   event = (watcher_event_t *) g_new0(watcher_event_t, 1);
+                  event->watcher = watcher;
                   event->event = g_strdup(CONFIG_KEY_WATCHER_EVENT_UNMOUNTED);
                   event->file = g_file_get_path(m_file);
                   event->rfile = g_file_get_relative_path(parent, m_file);
@@ -1078,6 +1110,7 @@ mount_event(GUnixMountMonitor *monitor, gpointer user_data)
                   parent = g_file_new_for_path(watcher->path);
 
                   event = (watcher_event_t *) g_new0(watcher_event_t, 1);
+                  event->watcher = watcher;
                   event->event = g_strdup(CONFIG_KEY_WATCHER_EVENT_MOUNTED);
                   event->file = g_file_get_path(m_file);
                   event->rfile = g_file_get_relative_path(parent, m_file);
@@ -1396,7 +1429,6 @@ watcher_destroy_monitors(const watcher_t *watcher)
 void
 watcher_list_monitors(const watcher_t *watcher)
 {
-  GFileMonitor *monitor;
   gchar *path;
   GHashTableIter iter;
   gpointer key, value;
@@ -1407,7 +1439,6 @@ watcher_list_monitors(const watcher_t *watcher)
   while (g_hash_table_iter_next(&iter, &key, &value))
     {
       path = (gchar *) key;
-      monitor = (GFileMonitor *) value;
 
       LOG_INFO("%s: +-- path=%s", watcher->name, path);
     }
@@ -1432,6 +1463,7 @@ watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
   parent = g_file_new_for_path(watcher->path);
 
   event = (watcher_event_t *) g_new0(watcher_event_t, 1);
+  event->watcher = watcher;
   event->file = g_file_get_path(file);
   event->rfile = g_file_get_relative_path(parent, file);
   if (!event->rfile)
@@ -1525,7 +1557,8 @@ watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
     }
 
   if (event_type == G_FILE_MONITOR_EVENT_CREATED && watcher->recursive
-      && g_file_test(event->file, G_FILE_TEST_IS_DIR) && (g_strcmp0(event->file, watcher->path) != 0))
+      && g_file_test(event->file, G_FILE_TEST_IS_DIR)
+      && (g_strcmp0(event->file, watcher->path) != 0))
     {
       watcher_add_monitor_for_recursive_path(watcher, event->file, depth);
     }
@@ -1542,43 +1575,64 @@ gboolean
 watcher_event_test(watcher_t *watcher, watcher_event_t *event)
 {
 #ifndef GStatBuf
-  struct stat st;
+  struct stat st_path, st_file;
 #else
-  GStatBuf st;
+  GStatBuf st_path, st_file;
 #endif
   gboolean found = FALSE;
   gboolean include = TRUE;
   gint i;
 
-  for (i = 0; watcher->events[i] != NULL; i++)
+  if (watcher->events)
     {
-      if (g_strcmp0(watcher->events[i], event->event) == 0)
+      for (i = 0; watcher->events[i] != NULL; i++)
         {
-          found = TRUE;
+          if (g_strcmp0(watcher->events[i], event->event) == 0)
+            {
+              found = TRUE;
 
-          break;
+              break;
+            }
         }
+
+      if (!found)
+        return FALSE;
     }
 
-  if (!found)
-    return FALSE;
-
-  if (g_stat(event->file, &st) != 0)
+  if (g_stat(event->watcher->path, &st_path) != 0)
     {
-      LOG_ERROR("%s", N_("failed to stat file"));
+      LOG_ERROR("%s '%s'",
+          N_("failed to stat the watcher path"), event->watcher->path);
 
       return FALSE;
     }
 
+  if (g_stat(event->file, &st_file) != 0)
+    {
+      LOG_ERROR("%s '%s'", N_("failed to stat the watched file"), event->file);
+
+      return FALSE;
+    }
+
+  if (watcher->mount)
+    {
+      if (st_file.st_dev != st_path.st_dev)
+        {
+          LOG_ERROR("%s", N_("the filesystems are not the same"));
+
+          return FALSE;
+        }
+    }
+
   if (watcher->type)
     {
-      switch (st.st_mode)
+      switch (st_file.st_mode)
         {
       case S_IFBLK:
         {
           if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_BLOCK) != 0)
             {
-              LOG_DEBUG("%s", N_("invalid type"));
+              LOG_DEBUG("%s", N_("the file type doesn't match"));
 
               return FALSE;
             }
@@ -1590,7 +1644,7 @@ watcher_event_test(watcher_t *watcher, watcher_event_t *event)
         {
           if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_CHARACTER) != 0)
             {
-              LOG_DEBUG("%s", N_("invalid type"));
+              LOG_DEBUG("%s", N_("the file type doesn't match"));
 
               return FALSE;
             }
@@ -1602,7 +1656,7 @@ watcher_event_test(watcher_t *watcher, watcher_event_t *event)
         {
           if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_DIRECTORY) != 0)
             {
-              LOG_DEBUG("%s", N_("invalid type"));
+              LOG_DEBUG("%s", N_("the file type doesn't match"));
 
               return FALSE;
             }
@@ -1614,7 +1668,7 @@ watcher_event_test(watcher_t *watcher, watcher_event_t *event)
         {
           if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_REGULAR) != 0)
             {
-              LOG_DEBUG("%s", N_("invalid type"));
+              LOG_DEBUG("%s", N_("the file type doesn't match"));
 
               return FALSE;
             }
@@ -1624,9 +1678,10 @@ watcher_event_test(watcher_t *watcher, watcher_event_t *event)
 
       case S_IFLNK:
         {
-          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_SYMBOLICLINK) != 0)
+          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_SYMBOLICLINK)
+              != 0)
             {
-              LOG_DEBUG("%s", N_("invalid type"));
+              LOG_DEBUG("%s", N_("the file type doesn't match"));
 
               return FALSE;
             }
@@ -1638,7 +1693,7 @@ watcher_event_test(watcher_t *watcher, watcher_event_t *event)
         {
           if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_FIFO) != 0)
             {
-              LOG_DEBUG("%s", N_("invalid type"));
+              LOG_DEBUG("%s", N_("the file type doesn't match"));
 
               return FALSE;
             }
@@ -1650,7 +1705,7 @@ watcher_event_test(watcher_t *watcher, watcher_event_t *event)
         {
           if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_SOCKET) != 0)
             {
-              LOG_DEBUG("%s", N_("invalid type"));
+              LOG_DEBUG("%s", N_("the file type doesn't match"));
 
               return FALSE;
             }
@@ -1660,7 +1715,7 @@ watcher_event_test(watcher_t *watcher, watcher_event_t *event)
 
       default:
         {
-          LOG_DEBUG("%s", N_("invalid type"));
+          LOG_DEBUG("%s", N_("the file type is unknown"));
 
           return FALSE;
 
@@ -1676,14 +1731,33 @@ watcher_event_test(watcher_t *watcher, watcher_event_t *event)
       pwd = getpwnam(watcher->user);
       if (!pwd)
         {
-          LOG_DEBUG("%s", N_("failed to retrieve user ID"));
+          gchar *err;
+          uid_t uid;
+
+          LOG_DEBUG("%s", N_("failed to retrieve the user name, trying the user id"));
+
+          uid = (uid_t) strtol(watcher->user, &err, 10);
+          if ((err == watcher->user) || (errno == ERANGE) || (errno == EINVAL))
+            {
+              LOG_DEBUG("%s", N_("invalid value"));
+
+              return FALSE;
+            }
+
+          pwd = getpwuid(uid);
+          if (pwd)
+            {
+              LOG_DEBUG("%s", N_("failed to retrieve the user id"));
+
+              return FALSE;
+            }
 
           return FALSE;
         }
 
-      if (pwd->pw_uid != st.st_uid)
+      if (pwd->pw_uid != st_file.st_uid)
         {
-          LOG_DEBUG("%s", N_("invalid user"));
+          LOG_DEBUG("%s", N_("the owner user matches"));
 
           return FALSE;
         }
@@ -1691,19 +1765,38 @@ watcher_event_test(watcher_t *watcher, watcher_event_t *event)
 
   if (watcher->group)
     {
-      struct passwd *pwd;
+      struct group *grp;
 
-      pwd = getpwnam(watcher->group);
-      if (!pwd)
+      grp = getgrnam(watcher->group);
+      if (!grp)
         {
-          LOG_DEBUG("%s", N_("failed to retrieve group ID"));
+          gchar *err;
+          gid_t gid;
+
+          LOG_DEBUG("%s", N_("failed to retrieve the group name, trying the group id"));
+
+          gid = (gid_t) strtol(watcher->group, &err, 10);
+          if ((err == watcher->user) || (errno == ERANGE) || (errno == EINVAL))
+            {
+              LOG_DEBUG("%s", N_("invalid value"));
+
+              return FALSE;
+            }
+
+          grp = getgrgid(gid);
+          if (grp)
+            {
+              LOG_DEBUG("%s", N_("failed to retrieve the group id"));
+
+              return FALSE;
+            }
 
           return FALSE;
         }
 
-      if (pwd->pw_gid != st.st_gid)
+      if (grp->gr_gid != st_file.st_gid)
         {
-          LOG_DEBUG("%s", N_("invalid group"));
+          LOG_DEBUG("%s", N_("the owner group matches"));
 
           return FALSE;
         }
@@ -1745,53 +1838,66 @@ watcher_event_fired(watcher_t *watcher, watcher_event_t *event)
 {
   GError *error = NULL;
   GRegex *regex;
-  gchar *cmd, *tmp;
+  gchar *exec, *tmp;
 
   LOG_INFO( "%s: %s (event=%s, file=%s)",
-      watcher->name, N_("watcher event fired"), event->event, event->file);
+      watcher->name, N_("event fired"), event->event, event->file);
 
-  regex = g_regex_new("\\" CONFIG_KEY_WATCHER_COMMAND_KEY_NAME, 0, 0, &error);
-  cmd = g_regex_replace_literal(regex, watcher->command, -1, 0, watcher->name,
-      0, &error);
-  g_regex_unref(regex);
-
-  tmp = cmd;
-  regex = g_regex_new("\\" CONFIG_KEY_WATCHER_COMMAND_KEY_PATH, 0, 0, &error);
-  cmd = g_regex_replace_literal(regex, tmp, -1, 0, watcher->path, 0, &error);
-  g_regex_unref(regex);
-  g_free(tmp);
-
-  tmp = cmd;
-  regex = g_regex_new("\\" CONFIG_KEY_WATCHER_COMMAND_KEY_EVENT, 0, 0, &error);
-  cmd = g_regex_replace_literal(regex, tmp, -1, 0, event->event, 0, &error);
-  g_regex_unref(regex);
-  g_free(tmp);
-
-  tmp = cmd;
-  regex = g_regex_new("\\" CONFIG_KEY_WATCHER_COMMAND_KEY_FILE, 0, 0, &error);
-  cmd = g_regex_replace_literal(regex, tmp, -1, 0, event->file, 0, &error);
-  g_regex_unref(regex);
-  g_free(tmp);
-
-  tmp = cmd;
-  regex = g_regex_new("\\" CONFIG_KEY_WATCHER_COMMAND_KEY_RFILE, 0, 0, &error);
-  cmd = g_regex_replace_literal(regex, tmp, -1, 0, event->rfile, 0, &error);
-  g_regex_unref(regex);
-  g_free(tmp);
-
-  LOG_INFO("%s: %s '%s'", watcher->name, N_("executing command"), cmd);
-
-  g_spawn_command_line_async(cmd, &error);
-  g_free(cmd);
-  if (error)
+  if (watcher->exec)
     {
-      LOG_ERROR("%s: %s (%s)",
-          watcher->name, N_("failed to execute command"), error->message);
+      regex = g_regex_new("\\" CONFIG_KEY_WATCHER_EXEC_KEY_NAME, 0, 0, &error);
+      exec = g_regex_replace_literal(regex, watcher->exec, -1, 0, watcher->name,
+          0, &error);
+      g_regex_unref(regex);
 
-      g_error_free(error);
-      error = NULL;
+      tmp = exec;
+      regex = g_regex_new("\\" CONFIG_KEY_WATCHER_EXEC_KEY_PATH, 0, 0, &error);
+      exec = g_regex_replace_literal(regex, tmp, -1, 0, watcher->path, 0,
+          &error);
+      g_regex_unref(regex);
+      g_free(tmp);
 
-      return;
+      tmp = exec;
+      regex = g_regex_new("\\" CONFIG_KEY_WATCHER_EXEC_KEY_EVENT, 0, 0, &error);
+      exec = g_regex_replace_literal(regex, tmp, -1, 0, event->event, 0,
+          &error);
+      g_regex_unref(regex);
+      g_free(tmp);
+
+      tmp = exec;
+      regex = g_regex_new("\\" CONFIG_KEY_WATCHER_EXEC_KEY_FILE, 0, 0, &error);
+      exec = g_regex_replace_literal(regex, tmp, -1, 0, event->file, 0, &error);
+      g_regex_unref(regex);
+      g_free(tmp);
+
+      tmp = exec;
+      regex = g_regex_new("\\" CONFIG_KEY_WATCHER_EXEC_KEY_RFILE, 0, 0, &error);
+      exec = g_regex_replace_literal(regex, tmp, -1, 0, event->rfile, 0,
+          &error);
+      g_regex_unref(regex);
+      g_free(tmp);
+
+      LOG_INFO("%s: %s '%s'", watcher->name, N_("executing command"), exec);
+
+      g_spawn_command_line_async(exec, &error);
+      g_free(exec);
+      if (error)
+        {
+          LOG_ERROR("%s: %s (%s)",
+              watcher->name, N_("failed to execute command"), error->message);
+
+          g_error_free(error);
+          error = NULL;
+        }
+    }
+
+  if (!app->daemon)
+    {
+      if (watcher->print)
+        g_print("%s\n", event->file);
+
+      if (watcher->print0)
+        g_print("%s", event->file);
     }
 }
 
@@ -1808,25 +1914,75 @@ version()
 void
 parse_command_line(gint argc, gchar *argv[])
 {
+  GOptionGroup *watcher;
   GOptionContext *context;
   GError *error = NULL;
   gchar *help;
+  gchar *current_dir, *file;
   gchar *config_file = NULL;
   gboolean verbose = FALSE;
   gint show_version = 0;
+  gchar *watcher_path = NULL;
+  gboolean watcher_recursive = CONFIG_KEY_WATCHER_RECURSIVE_DEFAULT;
+  gint watcher_maxdepth = CONFIG_KEY_WATCHER_MAXDEPTH_DEFAULT;
+  gchar *watcher_event = NULL;
+  gboolean watcher_mount = CONFIG_KEY_WATCHER_MOUNT_DEFAULT;
+  gchar *watcher_type = NULL;
+  gchar *watcher_user = NULL;
+  gchar *watcher_group = NULL;
+  gchar *watcher_include = NULL;
+  gchar *watcher_exclude = NULL;
+  gchar *watcher_exec = NULL;
+  gboolean watcher_print = FALSE;
+  gboolean watcher_print0 = FALSE;
 
-  GOptionEntry entries[] =
+  GOptionEntry main_entries[] =
     {
-      { "file", 'f', 0, G_OPTION_ARG_FILENAME, &config_file,
-          N_("read configuration from file"), N_("file") },
-          { "verbose", 'v', 0, G_OPTION_ARG_NONE, &verbose,
-              N_("set verbose output") },
-          { "version", 0, 0, G_OPTION_ARG_NONE, &show_version,
-              N_("show version information"), NULL },
-          { NULL } };
+      { "file", 'f', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_FILENAME, &config_file,
+          N_("read configuration from file"), N_("FILE") },
+      { "verbose", 'v', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE, &verbose,
+          N_("set verbose output") },
+      { "version", 0, G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE, &show_version,
+          N_("show version information"), NULL },
+      { NULL } };
+  GOptionEntry watcher_entries[] =
+        {
+          { "path", 0, 0, G_OPTION_ARG_FILENAME, &watcher_path,
+              N_("watcher path"), N_("PATH") },
+          { "recursive", 0, 0, G_OPTION_ARG_NONE, &watcher_recursive,
+              N_("recursive mode"), NULL },
+          { "maxdepth", 0, 0, G_OPTION_ARG_INT, &watcher_maxdepth,
+              N_("maximum depth of recursion"), N_("LEVEL") },
+          { "event", 0, 0, G_OPTION_ARG_STRING, &watcher_event,
+              N_("event to watch"), N_("EVENT") },
+          { "mount", 0, 0, G_OPTION_ARG_NONE, &watcher_mount,
+              N_("ignore directories on other filesystems"), NULL },
+          { "type", 0, 0, G_OPTION_ARG_STRING, &watcher_type,
+              N_("check file type"), N_("TYPE") },
+          { "user", 0, 0, G_OPTION_ARG_STRING, &watcher_user,
+              N_("check owner user"), N_("NAME") },
+          { "group", 0, 0, G_OPTION_ARG_STRING, &watcher_group,
+              N_("check owner group"), N_("NAME") },
+          { "include", 0, 0, G_OPTION_ARG_STRING, &watcher_include,
+              N_("include files list"), N_("LIST") },
+          { "exclude", 0, 0, G_OPTION_ARG_STRING, &watcher_exclude,
+              N_("exclude files list"), N_("LIST") },
+          { "exec", 0, 0, G_OPTION_ARG_STRING, &watcher_exec,
+              N_("execute command on event"), N_("COMMAND") },
+              { "print", 0, 0, G_OPTION_ARG_NONE, &watcher_print,
+                  N_("print the filename on event, followed by a newline") },
+              { "print0", 0, 0, G_OPTION_ARG_NONE, &watcher_print0,
+                  N_("print the filename on event, followed by a null character") },
+              { NULL } };
 
-  context = g_option_context_new(NULL);
-  g_option_context_add_main_entries(context, entries, PACKAGE);
+  context = g_option_context_new("[WATCHER]");
+
+  watcher = g_option_group_new(N_("watcher"), N_("Watcher Options"),
+      N_("Show all watcher options"), NULL, NULL);
+  g_option_group_add_entries(watcher, watcher_entries);
+  g_option_context_add_group(context, watcher);
+
+  g_option_context_add_main_entries(context, main_entries, PACKAGE);
 
   g_option_context_parse(context, &argc, &argv, &error);
   if (error)
@@ -1852,13 +2008,78 @@ parse_command_line(gint argc, gchar *argv[])
       exit(0);
     }
 
-  app->config_file = get_default_config_file(config_file);
-  if (!app->config_file)
+  if (watcher_path)
     {
-      g_printerr("%s\n",
-          N_("The configuration file doesn't exist or cannot be read."));
+      app->settings = g_key_file_new();
 
-      exit(1);
+      g_key_file_set_boolean(app->settings, CONFIG_GROUP_MAIN,
+          CONFIG_KEY_MAIN_DAEMONIZE, CONFIG_KEY_MAIN_DAEMONIZE_DEFAULT);
+
+      g_key_file_set_string(app->settings, CONFIG_GROUP_WATCHER,
+          CONFIG_KEY_WATCHER_PATH, watcher_path);
+      g_key_file_set_boolean(app->settings, CONFIG_GROUP_WATCHER,
+          CONFIG_KEY_WATCHER_RECURSIVE, watcher_recursive);
+      g_key_file_set_integer(app->settings, CONFIG_GROUP_WATCHER,
+          CONFIG_KEY_WATCHER_MAXDEPTH, watcher_maxdepth);
+
+      if (watcher_event)
+        g_key_file_set_string(app->settings, CONFIG_GROUP_WATCHER,
+            CONFIG_KEY_WATCHER_EVENTS, watcher_event);
+
+      g_key_file_set_boolean(app->settings, CONFIG_GROUP_WATCHER,
+          CONFIG_KEY_WATCHER_MOUNT, watcher_mount);
+
+      if (watcher_type)
+        g_key_file_set_string(app->settings, CONFIG_GROUP_WATCHER,
+            CONFIG_KEY_WATCHER_TYPE, watcher_type);
+
+      if (watcher_user)
+        g_key_file_set_string(app->settings, CONFIG_GROUP_WATCHER,
+            CONFIG_KEY_WATCHER_USER, watcher_user);
+
+      if (watcher_group)
+        g_key_file_set_string(app->settings, CONFIG_GROUP_WATCHER,
+            CONFIG_KEY_WATCHER_GROUP, watcher_group);
+
+      if (watcher_include)
+        g_key_file_set_string(app->settings, CONFIG_GROUP_WATCHER,
+            CONFIG_KEY_WATCHER_INCLUDE, watcher_include);
+
+      if (watcher_exclude)
+        g_key_file_set_string(app->settings, CONFIG_GROUP_WATCHER,
+            CONFIG_KEY_WATCHER_EXCLUDE, watcher_exclude);
+
+      if (watcher_exec)
+        g_key_file_set_string(app->settings, CONFIG_GROUP_WATCHER,
+            CONFIG_KEY_WATCHER_EXEC, watcher_exec);
+
+      g_key_file_set_boolean(app->settings, CONFIG_GROUP_WATCHER,
+          CONFIG_KEY_WATCHER_PRINT, watcher_print);
+
+      g_key_file_set_boolean(app->settings, CONFIG_GROUP_WATCHER,
+          CONFIG_KEY_WATCHER_PRINT0, watcher_print0);
+    }
+  else
+    {
+      if (config_file && !g_path_is_absolute(config_file))
+        {
+          current_dir = g_get_current_dir();
+          file = g_build_filename(current_dir, config_file, NULL);
+
+          g_free(current_dir);
+          g_free(config_file);
+
+          config_file = file;
+        }
+
+      app->config_file = get_default_config_file(config_file);
+      if (!app->config_file)
+        {
+          g_printerr("%s\n",
+              N_("The configuration file doesn't exist or cannot be read."));
+
+          exit(1);
+        }
     }
 
   app->verbose = verbose;
@@ -1973,9 +2194,11 @@ cleanup(void)
 
           g_free(watcher->name);
           g_free(watcher->path);
+          g_free(watcher->exec);
           g_free(watcher->type);
+          g_free(watcher->user);
+          g_free(watcher->group);
           g_strfreev(watcher->events);
-          g_free(watcher->command);
           g_strfreev(watcher->includes);
           g_strfreev(watcher->excludes);
           g_hash_table_destroy(watcher->monitors);
@@ -2020,7 +2243,7 @@ main(gint argc, gchar *argv[])
 
   parse_command_line(argc, argv);
 
-  if (!load_config())
+  if (app->config_file && !load_config())
     exit(2);
 
   app->watchers = init_watchers();
@@ -2094,11 +2317,15 @@ main(gint argc, gchar *argv[])
     }
 
   signal(SIGPIPE, sigpipe);
-  signal(SIGHUP, sighup);
   signal(SIGINT, sigint);
   signal(SIGTERM, sigterm);
-  signal(SIGUSR1, sigusr1);
-  signal(SIGUSR2, sigusr2);
+
+  if (app->daemon)
+    {
+      signal(SIGHUP, sighup);
+      signal(SIGUSR1, sigusr1);
+      signal(SIGUSR2, sigusr2);
+    }
 
   start_monitors();
 

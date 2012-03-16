@@ -55,11 +55,22 @@
 #define CONFIG_KEY_MAIN_USESYSLOG_DEFAULT               CONFIG_KEY_MAIN_USESYSLOG_NO
 #define CONFIG_KEY_MAIN_SYSLOGFACILITY                  "SyslogFacility"
 #define CONFIG_KEY_MAIN_SYSLOGFACILITY_DEFAULT          "DAEMON";
+
+#define CONFIG_GROUP_WATCHER                            "watcher"
 #define CONFIG_KEY_WATCHER_PATH                         "Path"
 #define CONFIG_KEY_WATCHER_RECURSIVE                    "Recursive"
 #define CONFIG_KEY_WATCHER_RECURSIVE_DEFAULT            0
 #define CONFIG_KEY_WATCHER_MAXDEPTH                     "MaxDepth"
 #define CONFIG_KEY_WATCHER_MAXDEPTH_DEFAULT             0
+#define CONFIG_KEY_WATCHER_EVENTS                       "Events"
+#define CONFIG_KEY_WATCHER_EVENT_CHANGED                "changed"
+#define CONFIG_KEY_WATCHER_EVENT_CREATED                "created"
+#define CONFIG_KEY_WATCHER_EVENT_DELETED                "deleted"
+#define CONFIG_KEY_WATCHER_EVENT_ATTRIBUTECHANGED       "attribute_changed"
+#define CONFIG_KEY_WATCHER_EVENT_MOUNTED                "mounted"
+#define CONFIG_KEY_WATCHER_EVENT_UNMOUNTED              "unmounted"
+#define CONFIG_KEY_WATCHER_MOUNT                        "Mount"
+#define CONFIG_KEY_WATCHER_MOUNT_DEFAULT                0
 #define CONFIG_KEY_WATCHER_TYPE                         "Type"
 #define CONFIG_KEY_WATCHER_TYPE_BLOCK                   "b"
 #define CONFIG_KEY_WATCHER_TYPE_CHARACTER               "c"
@@ -70,21 +81,16 @@
 #define CONFIG_KEY_WATCHER_TYPE_SOCKET                  "s"
 #define CONFIG_KEY_WATCHER_USER                         "User"
 #define CONFIG_KEY_WATCHER_GROUP                        "Group"
-#define CONFIG_KEY_WATCHER_EVENTS                       "Events"
-#define CONFIG_KEY_WATCHER_EVENT_CHANGED                "changed"
-#define CONFIG_KEY_WATCHER_EVENT_CREATED                "created"
-#define CONFIG_KEY_WATCHER_EVENT_DELETED                "deleted"
-#define CONFIG_KEY_WATCHER_EVENT_ATTRIBUTECHANGED       "attribute_changed"
-#define CONFIG_KEY_WATCHER_EVENT_MOUNTED                "mounted"
-#define CONFIG_KEY_WATCHER_EVENT_UNMOUNTED              "unmounted"
-#define CONFIG_KEY_WATCHER_COMMAND                      "Command"
-#define CONFIG_KEY_WATCHER_COMMAND_KEY_NAME             "$name"
-#define CONFIG_KEY_WATCHER_COMMAND_KEY_PATH             "$path"
-#define CONFIG_KEY_WATCHER_COMMAND_KEY_EVENT            "$event"
-#define CONFIG_KEY_WATCHER_COMMAND_KEY_FILE             "$file"
-#define CONFIG_KEY_WATCHER_COMMAND_KEY_RFILE            "$rfile"
 #define CONFIG_KEY_WATCHER_INCLUDE                      "Include"
 #define CONFIG_KEY_WATCHER_EXCLUDE                      "Exclude"
+#define CONFIG_KEY_WATCHER_EXEC                         "Exec"
+#define CONFIG_KEY_WATCHER_EXEC_KEY_NAME                "$name"
+#define CONFIG_KEY_WATCHER_EXEC_KEY_PATH                "$path"
+#define CONFIG_KEY_WATCHER_EXEC_KEY_EVENT               "$event"
+#define CONFIG_KEY_WATCHER_EXEC_KEY_FILE                "$file"
+#define CONFIG_KEY_WATCHER_EXEC_KEY_RFILE               "$rfile"
+#define CONFIG_KEY_WATCHER_PRINT                        "Print"
+#define CONFIG_KEY_WATCHER_PRINT0                       "Print0"
 
 typedef struct _application_t
 {
