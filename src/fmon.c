@@ -1,5 +1,5 @@
 /*
- * fmond - file monitoring daemon
+ * fmon - a file monitoring tool
  *
  * Copyright 2011 Boris HUISGEN <bhuisgen@hbis.fr>
  *
@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include "fmond.h"
+#include "fmon.h"
 #include "daemon.h"
 #include "log.h"
 #include "log_console.h"
@@ -149,15 +149,15 @@ get_default_config_file(const gchar *file)
   if (!homedir)
     homedir = g_get_home_dir();
 
-  config_file = g_build_path(G_DIR_SEPARATOR_S, homedir, FMOND_HOMEDIR,
-      FMOND_CONFIGFILE, NULL);
+  config_file = g_build_path(G_DIR_SEPARATOR_S, homedir, FMON_HOMEDIR,
+      FMON_CONFIGFILE, NULL);
 
   if (g_access(config_file, R_OK))
     {
       g_free(config_file);
 
       config_file = g_build_path(G_DIR_SEPARATOR_S, SYSCONFDIR,
-          FMOND_CONFIGFILE, NULL);
+          FMON_CONFIGFILE, NULL);
     }
 
   if (g_access(config_file, R_OK))
@@ -1905,9 +1905,9 @@ void
 version()
 {
   g_print("%s\n", PACKAGE_STRING);
-  g_print("%s\n", FMOND_COPYRIGHT);
+  g_print("%s\n", FMON_COPYRIGHT);
   g_print("\n");
-  g_print("%s\n", FMOND_LICENCE);
+  g_print("%s\n", FMON_LICENCE);
   g_print("\n");
 }
 
@@ -1946,34 +1946,34 @@ parse_command_line(gint argc, gchar *argv[])
           N_("show version information"), NULL },
       { NULL } };
   GOptionEntry watcher_entries[] =
-        {
-          { "path", 0, 0, G_OPTION_ARG_FILENAME, &watcher_path,
-              N_("watcher path"), N_("PATH") },
-          { "recursive", 0, 0, G_OPTION_ARG_NONE, &watcher_recursive,
-              N_("recursive mode"), NULL },
-          { "maxdepth", 0, 0, G_OPTION_ARG_INT, &watcher_maxdepth,
-              N_("maximum depth of recursion"), N_("LEVEL") },
-          { "event", 0, 0, G_OPTION_ARG_STRING, &watcher_event,
-              N_("event to watch"), N_("EVENT") },
-          { "mount", 0, 0, G_OPTION_ARG_NONE, &watcher_mount,
-              N_("ignore directories on other filesystems"), NULL },
-          { "type", 0, 0, G_OPTION_ARG_STRING, &watcher_type,
-              N_("check file type"), N_("TYPE") },
-          { "user", 0, 0, G_OPTION_ARG_STRING, &watcher_user,
-              N_("check owner user"), N_("NAME") },
-          { "group", 0, 0, G_OPTION_ARG_STRING, &watcher_group,
-              N_("check owner group"), N_("NAME") },
-          { "include", 0, 0, G_OPTION_ARG_STRING, &watcher_include,
-              N_("include files list"), N_("LIST") },
-          { "exclude", 0, 0, G_OPTION_ARG_STRING, &watcher_exclude,
-              N_("exclude files list"), N_("LIST") },
-          { "exec", 0, 0, G_OPTION_ARG_STRING, &watcher_exec,
-              N_("execute command on event"), N_("COMMAND") },
-              { "print", 0, 0, G_OPTION_ARG_NONE, &watcher_print,
-                  N_("print the filename on event, followed by a newline") },
-              { "print0", 0, 0, G_OPTION_ARG_NONE, &watcher_print0,
-                  N_("print the filename on event, followed by a null character") },
-              { NULL } };
+    {
+      { "path", 0, 0, G_OPTION_ARG_FILENAME, &watcher_path, N_("watcher path"),
+          N_("PATH") },
+      { "recursive", 0, 0, G_OPTION_ARG_NONE, &watcher_recursive,
+          N_("recursive mode"), NULL },
+      { "maxdepth", 0, 0, G_OPTION_ARG_INT, &watcher_maxdepth,
+          N_("maximum depth of recursion"), N_("LEVEL") },
+      { "event", 0, 0, G_OPTION_ARG_STRING, &watcher_event,
+          N_("event to watch"), N_("EVENT") },
+      { "mount", 0, 0, G_OPTION_ARG_NONE, &watcher_mount,
+          N_("ignore directories on other filesystems"), NULL },
+      { "type", 0, 0, G_OPTION_ARG_STRING, &watcher_type, N_("check file type"),
+          N_("TYPE") },
+      { "user", 0, 0, G_OPTION_ARG_STRING, &watcher_user,
+          N_("check owner user"), N_("NAME") },
+      { "group", 0, 0, G_OPTION_ARG_STRING, &watcher_group,
+          N_("check owner group"), N_("NAME") },
+      { "include", 0, 0, G_OPTION_ARG_STRING, &watcher_include,
+          N_("include files list"), N_("LIST") },
+      { "exclude", 0, 0, G_OPTION_ARG_STRING, &watcher_exclude,
+          N_("exclude files list"), N_("LIST") },
+      { "exec", 0, 0, G_OPTION_ARG_STRING, &watcher_exec,
+          N_("execute command on event"), N_("COMMAND") },
+      { "print", 0, 0, G_OPTION_ARG_NONE, &watcher_print,
+          N_("print filename on event, followed by a newline") },
+      { "print0", 0, 0, G_OPTION_ARG_NONE, &watcher_print0,
+          N_("print filename on event, followed by a null character") },
+      { NULL } };
 
   context = g_option_context_new("[WATCHER]");
 

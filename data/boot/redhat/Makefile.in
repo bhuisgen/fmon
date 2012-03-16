@@ -73,8 +73,8 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(fmond_datadir)"
-DATA = $(fmond_data_DATA)
+am__installdirs = "$(DESTDIR)$(fmon_datadir)"
+DATA = $(fmon_data_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -97,7 +97,7 @@ ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
-FMOND_VERSION = @FMOND_VERSION@
+FMON_VERSION = @FMON_VERSION@
 GETTEXT_MACRO_VERSION = @GETTEXT_MACRO_VERSION@
 GMSGFMT = @GMSGFMT@
 GMSGFMT_015 = @GMSGFMT_015@
@@ -194,13 +194,13 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-fmond_datadir = $(datadir)/fmond/boot/redhat
-fmond_data_DATA = \
-	fmond_init.d \
-	fmond_sysconfig
+fmon_datadir = $(datadir)/fmon/boot/redhat
+fmon_data_DATA = \
+	fmon_init.d \
+	fmon_sysconfig
 
 EXTRA_DIST = \
-	$(fmond_data_DATA)
+	$(fmon_data_DATA)
 
 all: all-am
 
@@ -235,24 +235,24 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-install-fmond_dataDATA: $(fmond_data_DATA)
+install-fmon_dataDATA: $(fmon_data_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(fmond_datadir)" || $(MKDIR_P) "$(DESTDIR)$(fmond_datadir)"
-	@list='$(fmond_data_DATA)'; test -n "$(fmond_datadir)" || list=; \
+	test -z "$(fmon_datadir)" || $(MKDIR_P) "$(DESTDIR)$(fmon_datadir)"
+	@list='$(fmon_data_DATA)'; test -n "$(fmon_datadir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
 	done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(fmond_datadir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(fmond_datadir)" || exit $$?; \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(fmon_datadir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(fmon_datadir)" || exit $$?; \
 	done
 
-uninstall-fmond_dataDATA:
+uninstall-fmon_dataDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(fmond_data_DATA)'; test -n "$(fmond_datadir)" || list=; \
+	@list='$(fmon_data_DATA)'; test -n "$(fmon_datadir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	dir='$(DESTDIR)$(fmond_datadir)'; $(am__uninstall_files_from_dir)
+	dir='$(DESTDIR)$(fmon_datadir)'; $(am__uninstall_files_from_dir)
 tags: TAGS
 TAGS:
 
@@ -294,7 +294,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(fmond_datadir)"; do \
+	for dir in "$(DESTDIR)$(fmon_datadir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -347,7 +347,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-fmond_dataDATA
+install-data-am: install-fmon_dataDATA
 
 install-dvi: install-dvi-am
 
@@ -391,7 +391,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-fmond_dataDATA
+uninstall-am: uninstall-fmon_dataDATA
 
 .MAKE: install-am install-strip
 
@@ -399,13 +399,12 @@ uninstall-am: uninstall-fmond_dataDATA
 	distclean-generic distdir dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am install-dvi \
 	install-dvi-am install-exec install-exec-am \
-	install-fmond_dataDATA install-html install-html-am \
+	install-fmon_dataDATA install-html install-html-am \
 	install-info install-info-am install-man install-pdf \
 	install-pdf-am install-ps install-ps-am install-strip \
 	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic pdf \
-	pdf-am ps ps-am uninstall uninstall-am \
-	uninstall-fmond_dataDATA
+	pdf-am ps ps-am uninstall uninstall-am uninstall-fmon_dataDATA
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

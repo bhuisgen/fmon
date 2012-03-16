@@ -1,8 +1,8 @@
-fmond_datadir = $(datadir)/fmond/boot/gentoo
+fmon_datadir = $(datadir)/fmon/boot/gentoo
 
-fmond_data_DATA = \
-	fmond_conf.d \
-	fmond_init.d
+fmon_data_DATA = \
+	fmon_conf.d \
+	fmon_init.d
 
 EXTRA_DIST = \
-	$(fmond_data_DATA)
+	$(fmon_data_DATA)

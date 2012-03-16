@@ -1,0 +1,4 @@
+# Configuration file for the fmon service.
+
+# set to 1 to start fmon on system startup
+STARTUP=0

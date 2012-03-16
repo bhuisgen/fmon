@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# fmond		Start up the file monitoring daemon
+# fmon		Start up the file monitoring daemon
 #
 # chkconfig: 2345 55 25
 # description: This service starts up the file monitoring daemon.
 ### BEGIN INIT INFO
-# Provides: fmond
+# Provides: fmon
 # Required-Start: $local_fs $network $syslog
 # Required-Stop: $local_fs $syslog
 # Should-Start: $syslog
@@ -20,10 +20,10 @@
 . /etc/init.d/functions
 
 RETVAL=0
-PIDFILE=/var/run/fmond/fmond.pid
+PIDFILE=/var/run/fmon/fmon.pid
 
-prog=fmond
-exec=/usr/sbin/fmond
+prog=fmon
+exec=/usr/sbin/fmon
 lockfile=/var/lock/subsys/$prog
 
 # Source config
@@ -34,7 +34,7 @@ fi
 start()
 {
 	[ -x $exec ] || exit 5
-	[ -f /etc/fmond.conf ] || exit 6
+	[ -f /etc/fmon.conf ] || exit 6
 	if [ "$STARTUP" = "1" ]; then
 		echo -n $"Starting file monitoring daemon: "
 		daemon --pidfile="$PIDFILE" $exec -i "$PIDFILE"
@@ -58,10 +58,10 @@ stop()
 reload()
 {
     RETVAL=1
-    fmond=$(cat "${PIDFILE}" 2>/dev/null)
+    fmon=$(cat "${PIDFILE}" 2>/dev/null)
     echo -n "Reloading file monitoring daemon..."
-    if [ -n "${fmond}" ] && [ -e /proc/"${fmond}" ]; then
-	kill -HUP "$fmond";
+    if [ -n "${fmon}" ] && [ -e /proc/"${fmon}" ]; then
+	kill -HUP "$fmon";
 	RETVAL=$?
     fi
     if [ $RETVAL -ne 0 ]; then

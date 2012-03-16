@@ -1,4 +1,0 @@
-# Configuration file for the fmond service.
-
-# set to 1 to start fmond on system startup
-STARTUP=0

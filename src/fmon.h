@@ -1,5 +1,5 @@
 /*
- * fmond - file monitoring daemon
+ * fmon - a file monitoring tool
  *
  * Copyright 2011 Boris HUISGEN <bhuisgen@hbis.fr>
  *
@@ -18,18 +18,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef FMOND_H_
-#define FMOND_H_
+#ifndef FMON_H_
+#define FMON_H_
 
 #include "common.h"
 #include "log.h"
 
-#define FMOND_COPYRIGHT                                 "Copyright (C) 2011 Boris HUISGEN <bhuisgen@hbis.fr>"
-#define FMOND_LICENCE                                   "This is free software; see the source for copying conditions.  There is NO\n" \
+#define FMON_COPYRIGHT                                 "Copyright (C) 2011 Boris HUISGEN <bhuisgen@hbis.fr>"
+#define FMON_LICENCE                                   "This is free software; see the source for copying conditions.  There is NO\n" \
                                                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
 
-#define FMOND_HOMEDIR                                   "." PACKAGE
-#define FMOND_CONFIGFILE                                PACKAGE ".conf"
+#define FMON_HOMEDIR                                   "." PACKAGE
+#define FMON_CONFIGFILE                                PACKAGE ".conf"
 
 #define CONFIG_GROUP_MAIN                               "main"
 #define CONFIG_KEY_MAIN_DAEMONIZE                       "Daemonize"
@@ -108,4 +108,4 @@ typedef struct _application_t
 
 extern application_t *app;
 
-#endif /* FMOND_H_ */
+#endif /* FMON_H_ */

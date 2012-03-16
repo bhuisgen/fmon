@@ -35,7 +35,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-sbin_PROGRAMS = fmond$(EXEEXT)
+sbin_PROGRAMS = fmon$(EXEEXT)
 subdir = src
 DIST_COMMON = $(noinst_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
@@ -49,12 +49,12 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
-am_fmond_OBJECTS = daemon.$(OBJEXT) fmond.$(OBJEXT) log.$(OBJEXT) \
+am_fmon_OBJECTS = daemon.$(OBJEXT) fmon.$(OBJEXT) log.$(OBJEXT) \
 	log_console.$(OBJEXT) log_file.$(OBJEXT) log_syslog.$(OBJEXT) \
 	utils.$(OBJEXT)
-fmond_OBJECTS = $(am_fmond_OBJECTS)
+fmon_OBJECTS = $(am_fmon_OBJECTS)
 am__DEPENDENCIES_1 =
-fmond_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+fmon_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -63,8 +63,8 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(fmond_SOURCES)
-DIST_SOURCES = $(fmond_SOURCES)
+SOURCES = $(fmon_SOURCES)
+DIST_SOURCES = $(fmon_SOURCES)
 HEADERS = $(noinst_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -95,7 +95,7 @@ ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
-FMOND_VERSION = @FMOND_VERSION@
+FMON_VERSION = @FMON_VERSION@
 GETTEXT_MACRO_VERSION = @GETTEXT_MACRO_VERSION@
 GMSGFMT = @GMSGFMT@
 GMSGFMT_015 = @GMSGFMT_015@
@@ -199,7 +199,7 @@ INCLUDES = \
 noinst_HEADERS = \
 	common.h \
 	daemon.h \
-	fmond.h \
+	fmon.h \
 	gettext.h \
 	log.h \
 	log_console.h \
@@ -207,21 +207,21 @@ noinst_HEADERS = \
 	log_syslog.h \
 	utils.h
 
-fmond_SOURCES = \
+fmon_SOURCES = \
 	daemon.c \
-	fmond.c \
+	fmon.c \
 	log.c \
 	log_console.c \
 	log_file.c \
 	log_syslog.c \
 	utils.c
 
-fmond_LDADD = \
+fmon_LDADD = \
     $(DEPS_LIBS) \
 	$(INTLLIBS)
 
 EXTRA_DIST = \
-	$(fmond_SOURCES)
+	$(fmon_SOURCES)
 
 all: all-am
 
@@ -294,9 +294,9 @@ uninstall-sbinPROGRAMS:
 
 clean-sbinPROGRAMS:
 	-test -z "$(sbin_PROGRAMS)" || rm -f $(sbin_PROGRAMS)
-fmond$(EXEEXT): $(fmond_OBJECTS) $(fmond_DEPENDENCIES) $(EXTRA_fmond_DEPENDENCIES) 
-	@rm -f fmond$(EXEEXT)
-	$(LINK) $(fmond_OBJECTS) $(fmond_LDADD) $(LIBS)
+fmon$(EXEEXT): $(fmon_OBJECTS) $(fmon_DEPENDENCIES) $(EXTRA_fmon_DEPENDENCIES) 
+	@rm -f fmon$(EXEEXT)
+	$(LINK) $(fmon_OBJECTS) $(fmon_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -305,7 +305,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/daemon.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmond.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fmon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log_console.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log_file.Po@am__quote@

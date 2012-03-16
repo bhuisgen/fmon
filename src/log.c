@@ -1,5 +1,5 @@
 /*
- * fmond - file monitoring daemon
+ * fmon - a file monitoring tool
  *
  * Copyright 2011 Boris HUISGEN <bhuisgen@hbis.fr>
  *

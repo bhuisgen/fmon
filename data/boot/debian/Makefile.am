@@ -1,8 +1,8 @@
-fmond_datadir = $(datadir)/fmond/boot/debian
+fmon_datadir = $(datadir)/fmon/boot/debian
 
-fmond_data_DATA = \
-	fmond_default \
-	fmond_init.d
+fmon_data_DATA = \
+	fmon_default \
+	fmon_init.d
 
 EXTRA_DIST = \
-	$(fmond_data_DATA)
+	$(fmon_data_DATA)

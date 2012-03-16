@@ -1,13 +1,13 @@
-fmond_docdir = $(docdir)
-fmond_sysconfdir = $(sysconfdir)
+fmon_docdir = $(docdir)
+fmon_sysconfdir = $(sysconfdir)
 
-fmond_doc_DATA = \
-	fmond.conf
+fmon_doc_DATA = \
+	fmon.conf
 
-fmond_sysconf_DATA = \
-	fmond.conf
+fmon_sysconf_DATA = \
+	fmon.conf
 
 EXTRA_DIST = \
-	$(fmond_doc_DATA) \
-	$(fmond_sysconf_DATA)
+	$(fmon_doc_DATA) \
+	$(fmon_sysconf_DATA)
 	

@@ -1,8 +1,8 @@
-fmond_datadir = $(datadir)/fmond/boot/redhat
+fmon_datadir = $(datadir)/fmon/boot/redhat
 
-fmond_data_DATA = \
-	fmond_init.d \
-	fmond_sysconfig
+fmon_data_DATA = \
+	fmon_init.d \
+	fmon_sysconfig
 
 EXTRA_DIST = \
-	$(fmond_data_DATA)
+	$(fmon_data_DATA)

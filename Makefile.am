@@ -1,8 +1,8 @@
 SUBDIRS = po src data doc
 
-fmond_docdir = $(docdir)
+fmon_docdir = $(docdir)
 
-fmond_doc_DATA = \
+fmon_doc_DATA = \
 	AUTHORS \
 	COPYING \
 	ChangeLog \
@@ -15,7 +15,7 @@ fmond_doc_DATA = \
 ACLOCAL_AMFLAGS = -I m4
 
 EXTRA_DIST = \
-	$(fmond_doc_DATA) \
+	$(fmon_doc_DATA) \
 	config.rpath \
 	m4/ChangeLog \
 	autogen.sh

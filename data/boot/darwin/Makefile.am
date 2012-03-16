@@ -1,8 +1,8 @@
-fmond_datadir = $(datadir)/fmond/boot/darwin
+fmon_datadir = $(datadir)/fmon/boot/darwin
 
-fmond_data_DATA = \
-	fmond_launchd \
-	fmond_wrapper
+fmon_data_DATA = \
+	fmon_launchd \
+	fmon_wrapper
 
 EXTRA_DIST = \
-	$(fmond_data_DATA)
+	$(fmon_data_DATA)

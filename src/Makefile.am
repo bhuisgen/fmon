@@ -14,12 +14,12 @@ INCLUDES = \
 	-I@top_srcdir@/include \
 	${DEPS_CFLAGS}
 
-sbin_PROGRAMS = fmond
+sbin_PROGRAMS = fmon
 
 noinst_HEADERS = \
 	common.h \
 	daemon.h \
-	fmond.h \
+	fmon.h \
 	gettext.h \
 	log.h \
 	log_console.h \
@@ -27,18 +27,18 @@ noinst_HEADERS = \
 	log_syslog.h \
 	utils.h
 
-fmond_SOURCES = \
+fmon_SOURCES = \
 	daemon.c \
-	fmond.c \
+	fmon.c \
 	log.c \
 	log_console.c \
 	log_file.c \
 	log_syslog.c \
 	utils.c
 
-fmond_LDADD = \
+fmon_LDADD = \
     $(DEPS_LIBS) \
 	$(INTLLIBS)
 
 EXTRA_DIST = \
-	$(fmond_SOURCES)
+	$(fmon_SOURCES)

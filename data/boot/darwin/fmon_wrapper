@@ -1,12 +1,12 @@
 #!/bin/sh
 #
-# fmond wrapper script for MacPorts
+# fmon wrapper script for MacPorts
 #
 
 PATH=/opt/local/sbin
 
-DAEMON=fmond
-PIDFILE=/opt/local/var/run/fmond/fmond.pid
+DAEMON=fmon
+PIDFILE=/opt/local/var/run/fmon/fmon.pid
 
 #
 # Start

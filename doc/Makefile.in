@@ -73,9 +73,9 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(fmond_docdir)" \
-	"$(DESTDIR)$(fmond_sysconfdir)"
-DATA = $(fmond_doc_DATA) $(fmond_sysconf_DATA)
+am__installdirs = "$(DESTDIR)$(fmon_docdir)" \
+	"$(DESTDIR)$(fmon_sysconfdir)"
+DATA = $(fmon_doc_DATA) $(fmon_sysconf_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -98,7 +98,7 @@ ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
-FMOND_VERSION = @FMOND_VERSION@
+FMON_VERSION = @FMON_VERSION@
 GETTEXT_MACRO_VERSION = @GETTEXT_MACRO_VERSION@
 GMSGFMT = @GMSGFMT@
 GMSGFMT_015 = @GMSGFMT_015@
@@ -195,17 +195,17 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-fmond_docdir = $(docdir)
-fmond_sysconfdir = $(sysconfdir)
-fmond_doc_DATA = \
-	fmond.conf
+fmon_docdir = $(docdir)
+fmon_sysconfdir = $(sysconfdir)
+fmon_doc_DATA = \
+	fmon.conf
 
-fmond_sysconf_DATA = \
-	fmond.conf
+fmon_sysconf_DATA = \
+	fmon.conf
 
 EXTRA_DIST = \
-	$(fmond_doc_DATA) \
-	$(fmond_sysconf_DATA)
+	$(fmon_doc_DATA) \
+	$(fmon_sysconf_DATA)
 
 all: all-am
 
@@ -240,42 +240,42 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-install-fmond_docDATA: $(fmond_doc_DATA)
+install-fmon_docDATA: $(fmon_doc_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(fmond_docdir)" || $(MKDIR_P) "$(DESTDIR)$(fmond_docdir)"
-	@list='$(fmond_doc_DATA)'; test -n "$(fmond_docdir)" || list=; \
+	test -z "$(fmon_docdir)" || $(MKDIR_P) "$(DESTDIR)$(fmon_docdir)"
+	@list='$(fmon_doc_DATA)'; test -n "$(fmon_docdir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
 	done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(fmond_docdir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(fmond_docdir)" || exit $$?; \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(fmon_docdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(fmon_docdir)" || exit $$?; \
 	done
 
-uninstall-fmond_docDATA:
+uninstall-fmon_docDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(fmond_doc_DATA)'; test -n "$(fmond_docdir)" || list=; \
+	@list='$(fmon_doc_DATA)'; test -n "$(fmon_docdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	dir='$(DESTDIR)$(fmond_docdir)'; $(am__uninstall_files_from_dir)
-install-fmond_sysconfDATA: $(fmond_sysconf_DATA)
+	dir='$(DESTDIR)$(fmon_docdir)'; $(am__uninstall_files_from_dir)
+install-fmon_sysconfDATA: $(fmon_sysconf_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(fmond_sysconfdir)" || $(MKDIR_P) "$(DESTDIR)$(fmond_sysconfdir)"
-	@list='$(fmond_sysconf_DATA)'; test -n "$(fmond_sysconfdir)" || list=; \
+	test -z "$(fmon_sysconfdir)" || $(MKDIR_P) "$(DESTDIR)$(fmon_sysconfdir)"
+	@list='$(fmon_sysconf_DATA)'; test -n "$(fmon_sysconfdir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
 	done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(fmond_sysconfdir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(fmond_sysconfdir)" || exit $$?; \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(fmon_sysconfdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(fmon_sysconfdir)" || exit $$?; \
 	done
 
-uninstall-fmond_sysconfDATA:
+uninstall-fmon_sysconfDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(fmond_sysconf_DATA)'; test -n "$(fmond_sysconfdir)" || list=; \
+	@list='$(fmon_sysconf_DATA)'; test -n "$(fmon_sysconfdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	dir='$(DESTDIR)$(fmond_sysconfdir)'; $(am__uninstall_files_from_dir)
+	dir='$(DESTDIR)$(fmon_sysconfdir)'; $(am__uninstall_files_from_dir)
 tags: TAGS
 TAGS:
 
@@ -317,7 +317,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(fmond_docdir)" "$(DESTDIR)$(fmond_sysconfdir)"; do \
+	for dir in "$(DESTDIR)$(fmon_docdir)" "$(DESTDIR)$(fmon_sysconfdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -370,7 +370,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-fmond_docDATA install-fmond_sysconfDATA
+install-data-am: install-fmon_docDATA install-fmon_sysconfDATA
 
 install-dvi: install-dvi-am
 
@@ -414,7 +414,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-fmond_docDATA uninstall-fmond_sysconfDATA
+uninstall-am: uninstall-fmon_docDATA uninstall-fmon_sysconfDATA
 
 .MAKE: install-am install-strip
 
@@ -422,13 +422,13 @@ uninstall-am: uninstall-fmond_docDATA uninstall-fmond_sysconfDATA
 	distclean-generic distdir dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am install-dvi \
 	install-dvi-am install-exec install-exec-am \
-	install-fmond_docDATA install-fmond_sysconfDATA install-html \
+	install-fmon_docDATA install-fmon_sysconfDATA install-html \
 	install-html-am install-info install-info-am install-man \
 	install-pdf install-pdf-am install-ps install-ps-am \
 	install-strip installcheck installcheck-am installdirs \
 	maintainer-clean maintainer-clean-generic mostlyclean \
 	mostlyclean-generic pdf pdf-am ps ps-am uninstall uninstall-am \
-	uninstall-fmond_docDATA uninstall-fmond_sysconfDATA
+	uninstall-fmon_docDATA uninstall-fmon_sysconfDATA
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

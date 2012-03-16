@@ -1,0 +1,5 @@
+# Defaults for fmon initscript (/etc/init.d/fmon)
+# This is a POSIX shell fragment
+
+# set to 1 to start fmon on system startup
+STARTUP=0

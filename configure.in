@@ -2,10 +2,10 @@
 # Process this file with autoconf to produce a configure script.
 
 FMOND_VERSION=`cat $srcdir/VERSION`
-AC_SUBST(FMOND_VERSION)
+AC_SUBST(FMON_VERSION)
 
 AC_PREREQ([2.67])
-AC_INIT([fmond], m4_esyscmd([tr -d '\n' <VERSION]), [bhuisgen@hbis.fr], [fmond], [http://blog.hbis.fr])
+AC_INIT([fmon], m4_esyscmd([tr -d '\n' <VERSION]), [bhuisgen@hbis.fr], [fmon], [http://blog.hbis.fr/softwares/fmon])
 AC_CONFIG_HEADER([config.h])
 AM_INIT_AUTOMAKE()
 
