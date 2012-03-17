@@ -284,7 +284,6 @@ init_watchers()
   gint i;
 
   groups = g_key_file_get_groups(app->settings, &len);
-
   if (len < 2)
     {
       g_printerr("%s: %s (%s)\n", app->config_file,
@@ -716,7 +715,7 @@ init_logger()
         }
       else
         {
-          logger = log_create_logger(handler, LOGGER_LEVEL_NONE);
+          logger = log_create_logger(handler, LOGGER_LEVEL_ERROR);
         }
       if (!logger)
         {
@@ -1914,8 +1913,8 @@ version()
 void
 parse_command_line(gint argc, gchar *argv[])
 {
-  GOptionGroup *watcher;
   GOptionContext *context;
+  GOptionGroup *watcher;
   GError *error = NULL;
   gchar *help;
   gchar *current_dir, *file;
@@ -1939,43 +1938,43 @@ parse_command_line(gint argc, gchar *argv[])
   GOptionEntry main_entries[] =
     {
       { "file", 'f', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_FILENAME, &config_file,
-          N_("read configuration from file"), N_("FILE") },
+          N_("Read configuration from file"), N_("FILE") },
       { "verbose", 'v', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE, &verbose,
-          N_("set verbose output") },
+          N_("Set verbose output") },
       { "version", 0, G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE, &show_version,
-          N_("show version information"), NULL },
+          N_("Show version information"), NULL },
       { NULL } };
   GOptionEntry watcher_entries[] =
     {
-      { "path", 0, 0, G_OPTION_ARG_FILENAME, &watcher_path, N_("watcher path"),
-          N_("PATH") },
+      { "path", 0, 0, G_OPTION_ARG_FILENAME, &watcher_path,
+          N_("Path to watch for events"), N_("PATH") },
       { "recursive", 0, 0, G_OPTION_ARG_NONE, &watcher_recursive,
-          N_("recursive mode"), NULL },
+          N_("Enable recursive mode"), NULL },
       { "maxdepth", 0, 0, G_OPTION_ARG_INT, &watcher_maxdepth,
-          N_("maximum depth of recursion"), N_("LEVEL") },
+          N_("Maximum depth of recursion"), N_("LEVEL") },
       { "event", 0, 0, G_OPTION_ARG_STRING, &watcher_event,
-          N_("event to watch"), N_("EVENT") },
+          N_("Event to watch"), N_("EVENT") },
       { "mount", 0, 0, G_OPTION_ARG_NONE, &watcher_mount,
-          N_("ignore directories on other filesystems"), NULL },
-      { "type", 0, 0, G_OPTION_ARG_STRING, &watcher_type, N_("check file type"),
+          N_("Ignore directories on other filesystems"), NULL },
+      { "type", 0, 0, G_OPTION_ARG_STRING, &watcher_type, N_("Check file type"),
           N_("TYPE") },
       { "user", 0, 0, G_OPTION_ARG_STRING, &watcher_user,
-          N_("check owner user"), N_("NAME") },
+          N_("Check owner user"), N_("NAME") },
       { "group", 0, 0, G_OPTION_ARG_STRING, &watcher_group,
-          N_("check owner group"), N_("NAME") },
+          N_("Check owner group"), N_("NAME") },
       { "include", 0, 0, G_OPTION_ARG_STRING, &watcher_include,
-          N_("include files list"), N_("LIST") },
+          N_("Include files list"), N_("LIST") },
       { "exclude", 0, 0, G_OPTION_ARG_STRING, &watcher_exclude,
-          N_("exclude files list"), N_("LIST") },
+          N_("Exclude files list"), N_("LIST") },
       { "exec", 0, 0, G_OPTION_ARG_STRING, &watcher_exec,
-          N_("execute command on event"), N_("COMMAND") },
+          N_("Execute command on event"), N_("COMMAND") },
       { "print", 0, 0, G_OPTION_ARG_NONE, &watcher_print,
-          N_("print filename on event, followed by a newline") },
+          N_("Print filename on event, followed by a newline") },
       { "print0", 0, 0, G_OPTION_ARG_NONE, &watcher_print0,
-          N_("print filename on event, followed by a null character") },
+          N_("Print filename on event, followed by a null character") },
       { NULL } };
 
-  context = g_option_context_new("[WATCHER]");
+  context = g_option_context_new(N_("[WATCHER]"));
 
   watcher = g_option_group_new(N_("watcher"), N_("Watcher Options"),
       N_("Show all watcher options"), NULL, NULL);
@@ -2013,7 +2012,7 @@ parse_command_line(gint argc, gchar *argv[])
       app->settings = g_key_file_new();
 
       g_key_file_set_boolean(app->settings, CONFIG_GROUP_MAIN,
-          CONFIG_KEY_MAIN_DAEMONIZE, CONFIG_KEY_MAIN_DAEMONIZE_DEFAULT);
+          CONFIG_KEY_MAIN_DAEMONIZE, CONFIG_KEY_MAIN_DAEMONIZE_NO);
 
       g_key_file_set_string(app->settings, CONFIG_GROUP_WATCHER,
           CONFIG_KEY_WATCHER_PATH, watcher_path);

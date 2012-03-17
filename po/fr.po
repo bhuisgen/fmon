@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fmond 0.1\n"
 "Report-Msgid-Bugs-To: bhuisgen@hbis.fr\n"
-"POT-Creation-Date: 2012-03-16 11:50+0100\n"
+"POT-Creation-Date: 2012-03-18 00:36+0100\n"
 "PO-Revision-Date: 2012-02-22 23:56+0200\n"
 "Last-Translator: Boris HUISGEN <bhuisgen@hbis.fr>\n"
 "Language-Team: Français <fr@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: src/fmon.c:186 src/fmon.c:200 src/fmon.c:208 src/fmon.c:249 src/fmon.c:259
-#: src/fmon.c:291
+#: src/fmon.c:290
 msgid "error in configuration file"
 msgstr "erreur dans le fichier de configuration"
 
@@ -33,392 +33,396 @@ msgstr "le premier groupe n'est pas 'main'"
 msgid "error in configuration file, aborting reload"
 msgstr "erreur dans le fichier de configuration, rechargement ignoré"
 
-#: src/fmon.c:291
+#: src/fmon.c:290
 msgid "no watcher group found"
 msgstr "aucun groupe de sonde trouvé"
 
-#: src/fmon.c:312
+#: src/fmon.c:311
 msgid "invalid path"
 msgstr "chemin invalide"
 
-#: src/fmon.c:324
+#: src/fmon.c:323
 msgid "file/path doesn't exist"
 msgstr "fichier/répertoire inexistant"
 
-#: src/fmon.c:338
+#: src/fmon.c:337
 msgid "bad permissions on file"
 msgstr "droits incorrects sur le fichier"
 
-#: src/fmon.c:353
+#: src/fmon.c:352
 msgid "bad permissions on path"
 msgstr "droits incorrects sur le fichier"
 
-#: src/fmon.c:379
+#: src/fmon.c:378
 msgid "recursion is enabled but path is not a directory"
 msgstr "la récursion est activé mais le path n'est pas un répertoire"
 
-#: src/fmon.c:401
+#: src/fmon.c:400
 msgid "invalid maximum depth of recursion"
 msgstr "niveau maximum de récursion invalide"
 
-#: src/fmon.c:436
+#: src/fmon.c:435
 msgid "invalid event"
 msgstr "évènement invalide"
 
-#: src/fmon.c:500
+#: src/fmon.c:499
 msgid "invalid type"
 msgstr "type invalide"
 
-#: src/fmon.c:740
+#: src/fmon.c:739
 msgid "watchers already started"
 msgstr "sondes déjà démarrées"
 
-#: src/fmon.c:745
+#: src/fmon.c:744
 msgid "starting watchers"
 msgstr "démarrage des sondes"
 
-#: src/fmon.c:749
+#: src/fmon.c:748
 msgid "mount watcher started"
 msgstr "sonde de montage démarrée"
 
-#: src/fmon.c:764
+#: src/fmon.c:763
 msgid "watcher started"
 msgstr "sonde activée"
 
-#: src/fmon.c:780
+#: src/fmon.c:779
 msgid "watchers already stopped"
 msgstr "sondes déjà arrêtées"
 
-#: src/fmon.c:785
+#: src/fmon.c:784
 msgid "stopping watchers"
 msgstr "arrêt des sondes"
 
-#: src/fmon.c:789
+#: src/fmon.c:788
 msgid "mount watcher stopped"
 msgstr "sonde de montage arrêtée"
 
-#: src/fmon.c:797
+#: src/fmon.c:796
 msgid "watcher stopped"
 msgstr "sonde arrêtée"
 
-#: src/fmon.c:811
+#: src/fmon.c:810
 msgid "watchers stopped"
 msgstr "sondes arrêtées"
 
-#: src/fmon.c:816 src/fmon.c:1436
+#: src/fmon.c:815 src/fmon.c:1435
 msgid "listing monitors"
 msgstr "liste des moniteurs"
 
-#: src/fmon.c:877
+#: src/fmon.c:876
 msgid "mount event received"
 msgstr "évènement de montage reçu"
 
-#: src/fmon.c:902
+#: src/fmon.c:901
 msgid "path unmounted"
 msgstr "chemin démonté"
 
-#: src/fmon.c:907 src/fmon.c:1058
+#: src/fmon.c:906 src/fmon.c:1057
 msgid "path has no parent"
 msgstr "le chemin n'a pas de parent"
 
-#: src/fmon.c:922 src/fmon.c:950 src/fmon.c:1073 src/fmon.c:1101
+#: src/fmon.c:921 src/fmon.c:949 src/fmon.c:1072 src/fmon.c:1100
 msgid "path matches"
 msgstr "correspondance du chemin"
 
-#: src/fmon.c:929 src/fmon.c:1080
+#: src/fmon.c:928 src/fmon.c:1079
 msgid "path has not the same prefix"
 msgstr "le chemin n'a pas le même préfixe"
 
-#: src/fmon.c:1002 src/fmon.c:1153
+#: src/fmon.c:1001 src/fmon.c:1152
 msgid "watcher updated"
 msgstr "sonde mise à jour"
 
-#: src/fmon.c:1007 src/fmon.c:1158 src/fmon.c:1549
+#: src/fmon.c:1006 src/fmon.c:1157 src/fmon.c:1548
 msgid "event ignored"
 msgstr "évènement ignoré"
 
-#: src/fmon.c:1053
+#: src/fmon.c:1052
 msgid "path mounted"
 msgstr "chemin monté"
 
-#: src/fmon.c:1201
+#: src/fmon.c:1200
 msgid "creating file monitor for path"
 msgstr "création du moniteur de fichier pour le chemin"
 
-#: src/fmon.c:1210
+#: src/fmon.c:1209
 msgid "failed to create file monitor"
 msgstr "échec de création du moniteur de fichier, code d'erreur"
 
-#: src/fmon.c:1239
+#: src/fmon.c:1238
 msgid "maximum depth of recursion reached"
 msgstr "le niveau maxium de récursion a été atteint"
 
-#: src/fmon.c:1255
+#: src/fmon.c:1254
 msgid "failed to create file enumerator"
 msgstr "échec de création du moniteur de fichier"
 
-#: src/fmon.c:1290
+#: src/fmon.c:1289
 msgid "failed to iterate during file enumeration"
 msgstr "échec d'itération durant l'énumération des fichiers"
 
-#: src/fmon.c:1310
+#: src/fmon.c:1309
 msgid "removing file monitor for path"
 msgstr "suppression du moniteur de fichier pour le chemin"
 
-#: src/fmon.c:1325 src/fmon.c:1376 src/fmon.c:1414
+#: src/fmon.c:1324 src/fmon.c:1375 src/fmon.c:1413
 msgid "file monitor cancelled"
 msgstr "moniteur de fichiers annulé"
 
-#: src/fmon.c:1330 src/fmon.c:1381 src/fmon.c:1419
+#: src/fmon.c:1329 src/fmon.c:1380 src/fmon.c:1418
 msgid "file monitor already cancelled"
 msgstr "moniteur de fichiers annulé"
 
-#: src/fmon.c:1354
+#: src/fmon.c:1353
 msgid "removing file monitors for recursive path"
 msgstr "suppression des moniteurs de fichiers pour le chemin récursif"
 
-#: src/fmon.c:1446
+#: src/fmon.c:1445
 msgid "end of list"
 msgstr "fin de liste"
 
-#: src/fmon.c:1493
+#: src/fmon.c:1492
 msgid "watcher event received"
 msgstr "évènement reçu par la sonde"
 
-#: src/fmon.c:1528
+#: src/fmon.c:1527
 msgid "unknown event"
 msgstr "évènement inconu"
 
-#: src/fmon.c:1605
+#: src/fmon.c:1604
 msgid "failed to stat the watcher path"
 msgstr "échec d'obtention du statut sur le chemin de la sonde"
 
-#: src/fmon.c:1612
+#: src/fmon.c:1611
 msgid "failed to stat the watched file"
 msgstr "échec d'obtention du statut sur le fichier sondé"
 
-#: src/fmon.c:1621
+#: src/fmon.c:1620
 msgid "the filesystems are not the same"
 msgstr "les systèmes de fichiers ne sont pas identiques"
 
-#: src/fmon.c:1635 src/fmon.c:1647 src/fmon.c:1659 src/fmon.c:1671
-#: src/fmon.c:1684 src/fmon.c:1696 src/fmon.c:1708
+#: src/fmon.c:1634 src/fmon.c:1646 src/fmon.c:1658 src/fmon.c:1670
+#: src/fmon.c:1683 src/fmon.c:1695 src/fmon.c:1707
 msgid "the file type doesn't match"
 msgstr "le type de fichier ne correspond pas"
 
-#: src/fmon.c:1718
+#: src/fmon.c:1717
 msgid "the file type is unknown"
 msgstr "le type de fichier est inconnu"
 
-#: src/fmon.c:1737
+#: src/fmon.c:1736
 msgid "failed to retrieve the user name, trying the user id"
 msgstr ""
 "échec de récupération du nom de l'utilisateur, essai sur l'identifiant "
 "utilisateur"
 
-#: src/fmon.c:1742 src/fmon.c:1781
+#: src/fmon.c:1741 src/fmon.c:1780
 msgid "invalid value"
 msgstr "valeur invalide"
 
-#: src/fmon.c:1750
+#: src/fmon.c:1749
 msgid "failed to retrieve the user id"
 msgstr "échec de récupération de l'identifiant utilisateur"
 
-#: src/fmon.c:1760
+#: src/fmon.c:1759
 msgid "the owner user matches"
 msgstr "l'utilisateur propriétaire correspond"
 
-#: src/fmon.c:1776
+#: src/fmon.c:1775
 msgid "failed to retrieve the group name, trying the group id"
 msgstr ""
 "échec de récupération du nom du groupe, essai sur l'identifiant de groupe"
 
-#: src/fmon.c:1789
+#: src/fmon.c:1788
 msgid "failed to retrieve the group id"
 msgstr "échec de récupération de l'identifiant de groupe"
 
-#: src/fmon.c:1799
+#: src/fmon.c:1798
 msgid "the owner group matches"
 msgstr "le groupe propriétaire correspond"
 
-#: src/fmon.c:1813
+#: src/fmon.c:1812
 msgid "relative filename found in include list"
 msgstr "nom relatif trouvé dans la liste d'inclusion"
 
-#: src/fmon.c:1826
+#: src/fmon.c:1825
 msgid "relative filename found in exclude list"
 msgstr "nom relatif trouvé dans la liste d'exclusion"
 
-#: src/fmon.c:1844
+#: src/fmon.c:1843
 msgid "event fired"
 msgstr "évènement signalé"
 
-#: src/fmon.c:1880
+#: src/fmon.c:1879
 msgid "executing command"
 msgstr "exécution de la commande"
 
-#: src/fmon.c:1887
+#: src/fmon.c:1886
 msgid "failed to execute command"
 msgstr "échec lors de l'exécution de la commande"
 
-#: src/fmon.c:1942
-msgid "read configuration from file"
-msgstr "lire la configuration depuis le fichier"
+#: src/fmon.c:1941
+msgid "Read configuration from file"
+msgstr "Lire la configuration depuis le fichier"
 
-#: src/fmon.c:1942
+#: src/fmon.c:1941
 msgid "FILE"
 msgstr "FICHIER"
 
-#: src/fmon.c:1944
-msgid "set verbose output"
-msgstr "fixe le niveau de verbosité"
+#: src/fmon.c:1943
+msgid "Set verbose output"
+msgstr "Fixe le niveau de verbosité"
 
-#: src/fmon.c:1946
-msgid "show version information"
-msgstr "affiche les informations de version"
+#: src/fmon.c:1945
+msgid "Show version information"
+msgstr "Affiche les informations de version"
 
-#: src/fmon.c:1951
-msgid "watcher path"
-msgstr "chemin de la sonde"
+#: src/fmon.c:1950
+msgid "Path to watch for events"
+msgstr "Chemin à inspecter pour les évènements"
 
-#: src/fmon.c:1951
+#: src/fmon.c:1950
 msgid "PATH"
 msgstr "PATH"
 
-#: src/fmon.c:1953
-msgid "recursive mode"
-msgstr "mode récursif"
+#: src/fmon.c:1952
+msgid "Enable recursive mode"
+msgstr "Active le mode récursif"
 
-#: src/fmon.c:1955
-msgid "maximum depth of recursion"
-msgstr "niveau maximum de récursion"
+#: src/fmon.c:1954
+msgid "Maximum depth of recursion"
+msgstr "Niveau maximum de récursion"
 
-#: src/fmon.c:1955
+#: src/fmon.c:1954
 msgid "LEVEL"
 msgstr "NIVEAU"
 
-#: src/fmon.c:1957
-msgid "event to watch"
-msgstr "évènement à inspecter"
+#: src/fmon.c:1956
+msgid "Event to watch"
+msgstr "Evènement à inspecter"
 
-#: src/fmon.c:1957
+#: src/fmon.c:1956
 msgid "EVENT"
 msgstr "EVENEMENT"
 
+#: src/fmon.c:1958
+msgid "Ignore directories on other filesystems"
+msgstr "Ignore les répertoires sur les systèmes de fichiers différents"
+
 #: src/fmon.c:1959
-msgid "ignore directories on other filesystems"
-msgstr "ignore les répertoires sur les systèmes de fichiers différents"
+msgid "Check file type"
+msgstr "Vérifie le type du fichier"
 
-#: src/fmon.c:1961
-msgid "check file type"
-msgstr "vérifie le type du fichier"
-
-#: src/fmon.c:1961
+#: src/fmon.c:1960
 msgid "TYPE"
 msgstr "TYPE"
 
-#: src/fmon.c:1963
-msgid "check owner user"
-msgstr "vérifie l'utilisateur propriétaire du fichier"
+#: src/fmon.c:1962
+msgid "Check owner user"
+msgstr "Vérifie l'utilisateur propriétaire du fichier"
 
-#: src/fmon.c:1963 src/fmon.c:1965
+#: src/fmon.c:1962 src/fmon.c:1964
 msgid "NAME"
 msgstr "NOM"
 
-#: src/fmon.c:1965
-msgid "check owner group"
-msgstr "vérifie le groupe propriétaire du fichier"
+#: src/fmon.c:1964
+msgid "Check owner group"
+msgstr "Vérifie le groupe propriétaire du fichier"
 
-#: src/fmon.c:1967
-msgid "include files list"
-msgstr "liste de fichiers à inclure"
+#: src/fmon.c:1966
+msgid "Include files list"
+msgstr "Liste de fichiers à inclure"
 
-#: src/fmon.c:1967 src/fmon.c:1969
+#: src/fmon.c:1966 src/fmon.c:1968
 msgid "LIST"
 msgstr "LISTE"
 
-#: src/fmon.c:1969
-msgid "exclude files list"
-msgstr "liste de fichiers à exclure"
+#: src/fmon.c:1968
+msgid "Exclude files list"
+msgstr "Liste de fichiers à exclure"
 
-#: src/fmon.c:1971
-msgid "execute command on event"
-msgstr "exécute la commande lors d'un évènement"
+#: src/fmon.c:1970
+msgid "Execute command on event"
+msgstr "Exécute la commande lors d'un évènement"
 
-#: src/fmon.c:1971
+#: src/fmon.c:1970
 msgid "COMMAND"
 msgstr "COMMANDE"
 
-#: src/fmon.c:1973
-msgid "print the filename on event, followed by a newline"
+#: src/fmon.c:1972
+msgid "Print filename on event, followed by a newline"
 msgstr ""
-"affiche le nom du fichier lors d'un évènement, suivi d'un retour à la ligne"
+"Affiche le nom du fichier lors d'un évènement, suivi d'un retour à la ligne"
 
-#: src/fmon.c:1975
-msgid "print the filename on event, followed by a null character"
+#: src/fmon.c:1974
+msgid "Print filename on event, followed by a null character"
 msgstr ""
-"affiche le nom du fichier lors d'un évènement, suivi d'un caractère nul"
+"Affiche le nom du fichier lors d'un évènement, suivi d'un caractère nul"
 
-#: src/fmon.c:1980
+#: src/fmon.c:1977
+msgid "[WATCHER]"
+msgstr "[SONDE]"
+
+#: src/fmon.c:1979
 msgid "watcher"
 msgstr "sonde"
 
-#: src/fmon.c:1980
+#: src/fmon.c:1979
 msgid "Watcher Options"
 msgstr "Options Sonde"
 
-#: src/fmon.c:1981
+#: src/fmon.c:1980
 msgid "Show all watcher options"
 msgstr "Affiche toutes les options d'une sonde"
 
-#: src/fmon.c:2079
+#: src/fmon.c:2078
 msgid "The configuration file doesn't exist or cannot be read."
 msgstr "Le fichier de configuration n'existe pas ou ne peut être lu."
 
-#: src/fmon.c:2091
+#: src/fmon.c:2090
 msgid "SIGPIPE received, continuing execution"
 msgstr "SIGPIPE reçu, poursuite de l'exécution"
 
-#: src/fmon.c:2097
+#: src/fmon.c:2096
 msgid "SIGHUP received, reloading configuration"
 msgstr "SIGHUP reçu, rechargement de la configuration"
 
-#: src/fmon.c:2105
+#: src/fmon.c:2104
 msgid "SIGINT received, exiting"
 msgstr "SIGINT reçu, abandon de l'exécution"
 
-#: src/fmon.c:2113
+#: src/fmon.c:2112
 msgid "SIGTERM received, exiting"
 msgstr "SIGTERM reçu, abandon de l'exécution"
 
-#: src/fmon.c:2121
+#: src/fmon.c:2120
 msgid "SIGUSR1 received, starting watchers"
 msgstr "SIGUSR1 reçu, démarrage des sondes"
 
-#: src/fmon.c:2130
+#: src/fmon.c:2129
 msgid "SIGUSR2 received, stopping watchers"
 msgstr "SIGUSR2 reçu, arrêt des sondes"
 
-#: src/fmon.c:2141
+#: src/fmon.c:2140
 msgid "cleanup"
 msgstr "nettoyage"
 
-#: src/fmon.c:2176
+#: src/fmon.c:2175
 msgid "daemon stopped"
 msgstr "démon arrêté"
 
-#: src/fmon.c:2231
+#: src/fmon.c:2230
 msgid "GLib version 2.6.0 or above is needed"
 msgstr "La librairie GLib version 2.6.0 ou supérieure est requise"
 
-#: src/fmon.c:2256
+#: src/fmon.c:2255
 msgid "Failed to create events logger."
 msgstr "Echec de création du journaliseur d'évènements"
 
-#: src/fmon.c:2310
+#: src/fmon.c:2309
 msgid "failed to daemonize, error code"
 msgstr "échec de démonisation, code d'erreur"
 
-#: src/fmon.c:2316
+#: src/fmon.c:2315
 msgid "daemon started"
 msgstr "démon démarré"
