@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fmond 0.1\n"
 "Report-Msgid-Bugs-To: bhuisgen@hbis.fr\n"
-"POT-Creation-Date: 2012-03-18 00:36+0100\n"
+"POT-Creation-Date: 2012-03-18 01:13+0100\n"
 "PO-Revision-Date: 2012-02-22 23:56+0200\n"
 "Last-Translator: Boris HUISGEN <bhuisgen@hbis.fr>\n"
 "Language-Team: Français <fr@li.org>\n"
@@ -216,7 +216,7 @@ msgstr ""
 "échec de récupération du nom de l'utilisateur, essai sur l'identifiant "
 "utilisateur"
 
-#: src/fmon.c:1741 src/fmon.c:1780
+#: src/fmon.c:1741 src/fmon.c:1778
 msgid "invalid value"
 msgstr "valeur invalide"
 
@@ -224,205 +224,205 @@ msgstr "valeur invalide"
 msgid "failed to retrieve the user id"
 msgstr "échec de récupération de l'identifiant utilisateur"
 
-#: src/fmon.c:1759
+#: src/fmon.c:1757
 msgid "the owner user matches"
 msgstr "l'utilisateur propriétaire correspond"
 
-#: src/fmon.c:1775
+#: src/fmon.c:1773
 msgid "failed to retrieve the group name, trying the group id"
 msgstr ""
 "échec de récupération du nom du groupe, essai sur l'identifiant de groupe"
 
-#: src/fmon.c:1788
+#: src/fmon.c:1786
 msgid "failed to retrieve the group id"
 msgstr "échec de récupération de l'identifiant de groupe"
 
-#: src/fmon.c:1798
+#: src/fmon.c:1794
 msgid "the owner group matches"
 msgstr "le groupe propriétaire correspond"
 
-#: src/fmon.c:1812
+#: src/fmon.c:1808
 msgid "relative filename found in include list"
 msgstr "nom relatif trouvé dans la liste d'inclusion"
 
-#: src/fmon.c:1825
+#: src/fmon.c:1821
 msgid "relative filename found in exclude list"
 msgstr "nom relatif trouvé dans la liste d'exclusion"
 
-#: src/fmon.c:1843
+#: src/fmon.c:1839
 msgid "event fired"
 msgstr "évènement signalé"
 
-#: src/fmon.c:1879
+#: src/fmon.c:1875
 msgid "executing command"
 msgstr "exécution de la commande"
 
-#: src/fmon.c:1886
+#: src/fmon.c:1882
 msgid "failed to execute command"
 msgstr "échec lors de l'exécution de la commande"
 
-#: src/fmon.c:1941
+#: src/fmon.c:1937
 msgid "Read configuration from file"
 msgstr "Lire la configuration depuis le fichier"
 
-#: src/fmon.c:1941
+#: src/fmon.c:1937
 msgid "FILE"
 msgstr "FICHIER"
 
-#: src/fmon.c:1943
+#: src/fmon.c:1939
 msgid "Set verbose output"
 msgstr "Fixe le niveau de verbosité"
 
-#: src/fmon.c:1945
+#: src/fmon.c:1941
 msgid "Show version information"
 msgstr "Affiche les informations de version"
 
-#: src/fmon.c:1950
+#: src/fmon.c:1946
 msgid "Path to watch for events"
 msgstr "Chemin à inspecter pour les évènements"
 
-#: src/fmon.c:1950
+#: src/fmon.c:1946
 msgid "PATH"
 msgstr "PATH"
 
-#: src/fmon.c:1952
+#: src/fmon.c:1948
 msgid "Enable recursive mode"
 msgstr "Active le mode récursif"
 
-#: src/fmon.c:1954
+#: src/fmon.c:1950
 msgid "Maximum depth of recursion"
 msgstr "Niveau maximum de récursion"
 
-#: src/fmon.c:1954
+#: src/fmon.c:1950
 msgid "LEVEL"
 msgstr "NIVEAU"
 
-#: src/fmon.c:1956
+#: src/fmon.c:1952
 msgid "Event to watch"
 msgstr "Evènement à inspecter"
 
-#: src/fmon.c:1956
+#: src/fmon.c:1952
 msgid "EVENT"
 msgstr "EVENEMENT"
 
-#: src/fmon.c:1958
+#: src/fmon.c:1954
 msgid "Ignore directories on other filesystems"
 msgstr "Ignore les répertoires sur les systèmes de fichiers différents"
 
-#: src/fmon.c:1959
+#: src/fmon.c:1955
 msgid "Check file type"
 msgstr "Vérifie le type du fichier"
 
-#: src/fmon.c:1960
+#: src/fmon.c:1956
 msgid "TYPE"
 msgstr "TYPE"
 
-#: src/fmon.c:1962
+#: src/fmon.c:1958
 msgid "Check owner user"
 msgstr "Vérifie l'utilisateur propriétaire du fichier"
 
-#: src/fmon.c:1962 src/fmon.c:1964
+#: src/fmon.c:1958 src/fmon.c:1960
 msgid "NAME"
 msgstr "NOM"
 
-#: src/fmon.c:1964
+#: src/fmon.c:1960
 msgid "Check owner group"
 msgstr "Vérifie le groupe propriétaire du fichier"
 
-#: src/fmon.c:1966
+#: src/fmon.c:1962
 msgid "Include files list"
 msgstr "Liste de fichiers à inclure"
 
-#: src/fmon.c:1966 src/fmon.c:1968
+#: src/fmon.c:1962 src/fmon.c:1964
 msgid "LIST"
 msgstr "LISTE"
 
-#: src/fmon.c:1968
+#: src/fmon.c:1964
 msgid "Exclude files list"
 msgstr "Liste de fichiers à exclure"
 
-#: src/fmon.c:1970
+#: src/fmon.c:1966
 msgid "Execute command on event"
 msgstr "Exécute la commande lors d'un évènement"
 
-#: src/fmon.c:1970
+#: src/fmon.c:1966
 msgid "COMMAND"
 msgstr "COMMANDE"
 
-#: src/fmon.c:1972
+#: src/fmon.c:1968
 msgid "Print filename on event, followed by a newline"
 msgstr ""
 "Affiche le nom du fichier lors d'un évènement, suivi d'un retour à la ligne"
 
-#: src/fmon.c:1974
+#: src/fmon.c:1970
 msgid "Print filename on event, followed by a null character"
 msgstr ""
 "Affiche le nom du fichier lors d'un évènement, suivi d'un caractère nul"
 
-#: src/fmon.c:1977
+#: src/fmon.c:1973
 msgid "[WATCHER]"
 msgstr "[SONDE]"
 
-#: src/fmon.c:1979
+#: src/fmon.c:1975
 msgid "watcher"
 msgstr "sonde"
 
-#: src/fmon.c:1979
+#: src/fmon.c:1975
 msgid "Watcher Options"
 msgstr "Options Sonde"
 
-#: src/fmon.c:1980
+#: src/fmon.c:1976
 msgid "Show all watcher options"
 msgstr "Affiche toutes les options d'une sonde"
 
-#: src/fmon.c:2078
+#: src/fmon.c:2074
 msgid "The configuration file doesn't exist or cannot be read."
 msgstr "Le fichier de configuration n'existe pas ou ne peut être lu."
 
-#: src/fmon.c:2090
+#: src/fmon.c:2086
 msgid "SIGPIPE received, continuing execution"
 msgstr "SIGPIPE reçu, poursuite de l'exécution"
 
-#: src/fmon.c:2096
+#: src/fmon.c:2092
 msgid "SIGHUP received, reloading configuration"
 msgstr "SIGHUP reçu, rechargement de la configuration"
 
-#: src/fmon.c:2104
+#: src/fmon.c:2100
 msgid "SIGINT received, exiting"
 msgstr "SIGINT reçu, abandon de l'exécution"
 
-#: src/fmon.c:2112
+#: src/fmon.c:2108
 msgid "SIGTERM received, exiting"
 msgstr "SIGTERM reçu, abandon de l'exécution"
 
-#: src/fmon.c:2120
+#: src/fmon.c:2116
 msgid "SIGUSR1 received, starting watchers"
 msgstr "SIGUSR1 reçu, démarrage des sondes"
 
-#: src/fmon.c:2129
+#: src/fmon.c:2125
 msgid "SIGUSR2 received, stopping watchers"
 msgstr "SIGUSR2 reçu, arrêt des sondes"
 
-#: src/fmon.c:2140
+#: src/fmon.c:2136
 msgid "cleanup"
 msgstr "nettoyage"
 
-#: src/fmon.c:2175
+#: src/fmon.c:2171
 msgid "daemon stopped"
 msgstr "démon arrêté"
 
-#: src/fmon.c:2230
+#: src/fmon.c:2226
 msgid "GLib version 2.6.0 or above is needed"
 msgstr "La librairie GLib version 2.6.0 ou supérieure est requise"
 
-#: src/fmon.c:2255
+#: src/fmon.c:2251
 msgid "Failed to create events logger."
 msgstr "Echec de création du journaliseur d'évènements"
 
-#: src/fmon.c:2309
+#: src/fmon.c:2305
 msgid "failed to daemonize, error code"
 msgstr "échec de démonisation, code d'erreur"
 
-#: src/fmon.c:2315
+#: src/fmon.c:2311
 msgid "daemon started"
 msgstr "démon démarré"
