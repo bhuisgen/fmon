@@ -1744,14 +1744,12 @@ watcher_event_test(watcher_t *watcher, watcher_event_t *event)
             }
 
           pwd = getpwuid(uid);
-          if (pwd)
+          if (!pwd)
             {
               LOG_DEBUG("%s", N_("failed to retrieve the user id"));
 
               return FALSE;
             }
-
-          return FALSE;
         }
 
       if (pwd->pw_uid != st_file.st_uid)
@@ -1783,14 +1781,12 @@ watcher_event_test(watcher_t *watcher, watcher_event_t *event)
             }
 
           grp = getgrgid(gid);
-          if (grp)
+          if (!grp)
             {
               LOG_DEBUG("%s", N_("failed to retrieve the group id"));
 
               return FALSE;
             }
-
-          return FALSE;
         }
 
       if (grp->gr_gid != st_file.st_gid)
