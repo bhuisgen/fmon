@@ -869,7 +869,7 @@ mount_event(GUnixMountMonitor *monitor, gpointer user_data)
   const gchar *mountpath;
   gchar *path;
   gboolean found, matched;
-  gint depth;
+  gint depth = 1;
   watcher_t *watcher;
   watcher_event_t *event;
 
@@ -965,8 +965,6 @@ mount_event(GUnixMountMonitor *monitor, gpointer user_data)
 
                   if (watcher->recursive)
                     {
-                      depth = 1;
-
                       for (top = g_file_dup(m_file), depth = 1;
                           !g_file_equal(top, parent)
                               && !g_file_has_parent(top, parent);
@@ -1450,7 +1448,7 @@ watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
     GFileMonitorEvent event_type, gpointer user_data)
 {
   GFile *parent, *top, *tmp;
-  gboolean depth;
+  gboolean depth = 1;
   watcher_t *watcher;
   watcher_event_t *event;
 
@@ -1470,8 +1468,6 @@ watcher_event(GFileMonitor *monitor, GFile *file, GFile *other_file,
 
   if (watcher->recursive)
     {
-      depth = 1;
-
       for (top = g_file_dup(file), depth = 1;
           !g_file_equal(top, parent) && !g_file_has_parent(top, parent); top =
               tmp, depth++)

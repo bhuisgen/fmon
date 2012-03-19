@@ -1,4 +1,156 @@
-2011-03-13  Borid HUISGEN  <bhuisgen@hbis.fr>
+commit df9134100abb7802ca51f51d54b5f2ec817ae3fc
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Sun Mar 18 01:59:53 2012 +0100
 
-	* [RELEASE] version 0.1
+    Update traductions.
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
 
+commit a61e0d1288f3a040f407801d0676f51e4c29d0ab
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Sun Mar 18 01:10:28 2012 +0100
+
+    Fix owner uid/gid checks.
+    
+    - fmond.c: fix owner uid/gid checks.
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
+
+commit c560c4aa70ee0c59e9a41d1429fd9a5efa9b8498
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Sun Mar 18 00:41:46 2012 +0100
+
+    Some minor fixes.
+    
+    - fmond.c: fix help text output.
+    - fmond.c: fix logger to show error for non verbose output.
+    - fmond.c: fix daemon option value set to no if client execution.
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
+
+commit b18ef90270536e30c47bfcb2f9527ea9ae9e79e5
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Fri Mar 16 12:08:10 2012 +0100
+
+    Rename program name to fmon.
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
+
+commit 698b2fe962a6ba1563954c147ae1ece45555df67
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Fri Mar 16 01:33:28 2012 +0100
+
+    Add watcher support in command line execution.
+    
+    - fmond.c: add watcher support in client execution to simulate find command.
+    - fmond.c: add print/print0 in client execution though pipe to allow grep/xargs.
+    - fmond.c: rename 'Command' option to 'Exec'.
+    - fmond.c: allow 'Exec' and 'Events' options to be omitted to allow log only mode.
+    - fmond.c: fix SIGHUP/SIGUSR1/SIGUSR2 to work only in daemon mode.
+    - fmond.c: disable configuration file loading in client execution.
+    - fmond.c: reorder options in init_watchers().
+    - fmond.c: add uid/gid support for 'User' and 'Group' watcher options.
+    - fmond.c: fix verbose output in init_logger().
+    - fmond.c: cleanup in watcher_list_monitors().
+    - fmond.c: force custom config file to be absolute for daemon mode.
+    - fmond.c: fix check on owner group name.
+    - fmond.c: fix logger_set_options() return values.
+    - fmond.c: fix watcher struct member mount_event() and watcher_event().
+    - fmond.c: fix memory leaks in init_watchers().
+    - fmond.c: fix memory leaks with watcher user/group options .
+    - daemon.c: remove unused variable.
+    - fmond.conf: update configuration file.
+    - fmond.c: update configure.in.
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
+
+commit d8c135f63c04df2a6d4bbbb910a0acfa8a260db3
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Mon Mar 12 19:57:21 2012 +0100
+
+    Add mount/umounts events support, recursive directories and new file tests.
+    
+    - fmond.c: add support for mount/umount events.
+    - fmond.c: add support for recursive monitoring.
+    - fmond.c: add new file tests : type, user/group owner,
+    - fmond.c: catch SIGUSR1 and SIGUSR2 signals for starting/stopping watchers.
+    - fmond.c: update logger macros to check logger existence.
+    - common.h: add gio-unix.h
+    - fmond.conf: add new options.
+    - configure.in:  add check for gio-unix 2.6.
+    - autoconf/automake: regenerate scripts on Debian 6.
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
+
+commit 569478199f66c8967630c1bb14709b06943c441f
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Fri Mar 2 23:56:01 2012 +0100
+
+    Add unmounted event capability.
+    
+    - fmond.c: add 'unmounted' event capability.
+    - fmond.c: fix crash when logger is not created in stop_watchers().
+    - fmond.c: fix event check + exclude list.
+    - fmond.c: enable debug flags to g_type_init().
+    - update configuration file and translations.
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
+
+commit 5bc5beb55c0a76d778d277f6fdc72a38a0d304ee
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Thu Mar 1 01:39:39 2012 +0100
+
+    Remove duplicated code.
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
+
+commit f56e59f20dfe75feb57a89257c97f4b98ca7296c
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Thu Mar 1 00:59:39 2012 +0100
+
+    Fix uninitialized value.
+    
+    fmond.c: fix uninitialized watcher struct.
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
+
+commit b10dc7dde15ec4aa7767ad092088bfa64be494a9
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Wed Feb 29 23:33:21 2012 +0100
+
+    Update README/TODO files
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
+
+commit 9079b44129dd83fb45e40018bebbf68d1be71c9a
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Wed Feb 29 23:22:10 2012 +0100
+
+    Add include / exclude lists options and relative filename support.
+    
+    - fmond.c: add include / exclude list support like rsync for
+    ignoring/restricting some files.
+    - fmond.c: pass new variable $rfile to command which is the relative
+    file found.
+    - fmond.c: fix to allow daemon execution without setting user and group
+    options.
+    - fmond.c: fix for custom config file and add file check before options
+    loading.
+    - fmond.c: add daemon flag to known current execution type.
+    - fmond.c: use GError on all glib functions where it is possible.
+    - fmond.c: check main/watcher groups existence and creation order.
+    - fmond.c: update logger/handlers with new API.
+    - log.c: redesign log handler functions.
+    - log_console.c: update API.
+    - log_file.c: update API.
+    - log_syslog.c: update API.
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
+
+commit d50314941e6f2c181739ddd874678ab7ce442974
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Sun Feb 26 18:44:03 2012 +0100
+
+    first import
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
