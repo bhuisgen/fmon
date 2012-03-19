@@ -25,7 +25,9 @@ noinst_HEADERS = \
 	log_console.h \
 	log_file.h \
 	log_syslog.h \
-	utils.h
+	mount.h \
+	utils.h \
+	watcher.h
 
 fmon_SOURCES = \
 	daemon.c \
@@ -34,7 +36,9 @@ fmon_SOURCES = \
 	log_console.c \
 	log_file.c \
 	log_syslog.c \
-	utils.c
+	mount.c \
+	utils.c \
+	watcher.c
 
 fmon_LDADD = \
     $(DEPS_LIBS) \

@@ -51,7 +51,7 @@ am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
 am_fmon_OBJECTS = daemon.$(OBJEXT) fmon.$(OBJEXT) log.$(OBJEXT) \
 	log_console.$(OBJEXT) log_file.$(OBJEXT) log_syslog.$(OBJEXT) \
-	utils.$(OBJEXT)
+	mount.$(OBJEXT) utils.$(OBJEXT) watcher.$(OBJEXT)
 fmon_OBJECTS = $(am_fmon_OBJECTS)
 am__DEPENDENCIES_1 =
 fmon_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
@@ -205,7 +205,9 @@ noinst_HEADERS = \
 	log_console.h \
 	log_file.h \
 	log_syslog.h \
-	utils.h
+	mount.h \
+	utils.h \
+	watcher.h
 
 fmon_SOURCES = \
 	daemon.c \
@@ -214,7 +216,9 @@ fmon_SOURCES = \
 	log_console.c \
 	log_file.c \
 	log_syslog.c \
-	utils.c
+	mount.c \
+	utils.c \
+	watcher.c
 
 fmon_LDADD = \
     $(DEPS_LIBS) \
@@ -310,7 +314,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log_console.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log_file.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/log_syslog.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mount.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/watcher.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
