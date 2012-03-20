@@ -1199,7 +1199,7 @@ watcher_add_monitor_for_path(const watcher_t *watcher, const gchar *path)
 
   file = g_file_new_for_path(path);
 
-  monitor = g_file_monitor(file, G_FILE_MONITOR_NONE, NULL, &error);
+  monitor = g_file_monitor_directory(file, G_FILE_MONITOR_NONE, NULL, &error);
   g_object_unref(file);
   if (error)
     {
@@ -1244,7 +1244,7 @@ watcher_add_monitor_for_recursive_path(const watcher_t *watcher,
   file = g_file_new_for_path(path);
 
   enumerator = g_file_enumerate_children(file, "standard::type,standard::name",
-      G_FILE_QUERY_INFO_NONE, NULL, &error);
+      G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS, NULL, &error);
   g_object_unref(file);
   if (error)
     {
@@ -1578,6 +1578,9 @@ watcher_event_test(watcher_t *watcher, watcher_event_t *event)
   gboolean include = TRUE;
   gint i;
 
+  memset(&st_path, 0, sizeof(st_path));
+  memset(&st_file, 0, sizeof(st_file));
+
   if (watcher->events)
     {
       for (i = 0; watcher->events[i] != NULL; i++)
@@ -1594,202 +1597,188 @@ watcher_event_test(watcher_t *watcher, watcher_event_t *event)
         return FALSE;
     }
 
-  if (g_stat(event->watcher->path, &st_path) != 0)
+  if ((g_strcmp0(event->event, CONFIG_KEY_WATCHER_EVENT_DELETED) != 0)
+      && (g_strcmp0(event->event, CONFIG_KEY_WATCHER_EVENT_UNMOUNTED) != 0))
     {
-      LOG_ERROR("%s '%s'",
-          N_("failed to stat the watcher path"), event->watcher->path);
-
-      return FALSE;
-    }
-
-  if (g_stat(event->file, &st_file) != 0)
-    {
-      LOG_ERROR("%s '%s'", N_("failed to stat the watched file"), event->file);
-
-      return FALSE;
-    }
-
-  if (watcher->mount)
-    {
-      if (st_file.st_dev != st_path.st_dev)
+      if (g_stat(event->watcher->path, &st_path) != 0)
         {
-          LOG_ERROR("%s", N_("the filesystems are not the same"));
+          LOG_ERROR("%s '%s'",
+              N_("failed to stat the watcher path"), event->watcher->path);
 
           return FALSE;
         }
-    }
 
-  if (watcher->type)
-    {
-      switch (st_file.st_mode)
+      if (g_stat(event->file, &st_file) != 0)
         {
-      case S_IFBLK:
-        {
-          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_BLOCK) != 0)
-            {
-              LOG_DEBUG("%s", N_("the file type doesn't match"));
-
-              return FALSE;
-            }
-
-          break;
-        }
-
-      case S_IFCHR:
-        {
-          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_CHARACTER) != 0)
-            {
-              LOG_DEBUG("%s", N_("the file type doesn't match"));
-
-              return FALSE;
-            }
-
-          break;
-        }
-
-      case S_IFDIR:
-        {
-          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_DIRECTORY) != 0)
-            {
-              LOG_DEBUG("%s", N_("the file type doesn't match"));
-
-              return FALSE;
-            }
-
-          break;
-        }
-
-      case S_IFREG:
-        {
-          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_REGULAR) != 0)
-            {
-              LOG_DEBUG("%s", N_("the file type doesn't match"));
-
-              return FALSE;
-            }
-
-          break;
-        }
-
-      case S_IFLNK:
-        {
-          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_SYMBOLICLINK)
-              != 0)
-            {
-              LOG_DEBUG("%s", N_("the file type doesn't match"));
-
-              return FALSE;
-            }
-
-          break;
-        }
-
-      case S_IFIFO:
-        {
-          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_FIFO) != 0)
-            {
-              LOG_DEBUG("%s", N_("the file type doesn't match"));
-
-              return FALSE;
-            }
-
-          break;
-        }
-
-      case S_IFSOCK:
-        {
-          if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_SOCKET) != 0)
-            {
-              LOG_DEBUG("%s", N_("the file type doesn't match"));
-
-              return FALSE;
-            }
-
-          break;
-        }
-
-      default:
-        {
-          LOG_DEBUG("%s", N_("the file type is unknown"));
+          LOG_ERROR("%s '%s'",
+              N_("failed to stat the watched file"), event->file);
 
           return FALSE;
-
-          break;
         }
-        }
-    }
 
-  if (watcher->user)
-    {
-      struct passwd *pwd;
-
-      pwd = getpwnam(watcher->user);
-      if (!pwd)
+      if (watcher->mount)
         {
-          gchar *err;
-          uid_t uid;
-
-          LOG_DEBUG("%s", N_("failed to retrieve the user name, trying the user id"));
-
-          uid = (uid_t) strtol(watcher->user, &err, 10);
-          if ((err == watcher->user) || (errno == ERANGE) || (errno == EINVAL))
+          if (st_file.st_dev != st_path.st_dev)
             {
-              LOG_DEBUG("%s", N_("invalid value"));
+              LOG_ERROR("%s", N_("the filesystems are not the same"));
 
               return FALSE;
             }
+        }
 
-          pwd = getpwuid(uid);
+      if (watcher->type)
+        {
+          if (S_ISBLK(st_file.st_mode))
+            {
+              if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_BLOCK) != 0)
+                {
+                  LOG_DEBUG("%s", N_("the file type doesn't match"));
+
+                  return FALSE;
+                }
+            }
+          else if (S_ISCHR(st_file.st_mode))
+            {
+              if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_CHARACTER)
+                  != 0)
+                {
+                  LOG_DEBUG("%s", N_("the file type doesn't match"));
+
+                  return FALSE;
+                }
+            }
+          else if (S_ISDIR(st_file.st_mode))
+            {
+              if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_DIRECTORY)
+                  != 0)
+                {
+                  LOG_DEBUG("%s", N_("the file type doesn't match"));
+
+                  return FALSE;
+                }
+            }
+          else if (S_ISREG(st_file.st_mode))
+            {
+              if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_REGULAR)
+                  != 0)
+                {
+                  LOG_DEBUG("%s", N_("the file type doesn't match"));
+
+                  return FALSE;
+                }
+            }
+          else if (S_ISLNK(st_file.st_mode))
+            {
+              if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_SYMBOLICLINK)
+                  != 0)
+                {
+                  LOG_DEBUG("%s", N_("the file type doesn't match"));
+
+                  return FALSE;
+                }
+            }
+          else if (S_ISFIFO(st_file.st_mode))
+            {
+              if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_FIFO) != 0)
+                {
+                  LOG_DEBUG("%s", N_("the file type doesn't match"));
+
+                  return FALSE;
+                }
+            }
+          else if (S_ISSOCK(st_file.st_mode))
+            {
+              if (g_strcmp0(watcher->type, CONFIG_KEY_WATCHER_TYPE_SOCKET) != 0)
+                {
+                  LOG_DEBUG("%s", N_("the file type doesn't match"));
+
+                  return FALSE;
+                }
+            }
+          else
+            {
+              LOG_DEBUG("%s", N_("the file type is unknown"));
+
+              return FALSE;
+            }
+        }
+
+      if (watcher->user)
+        {
+          struct passwd *pwd;
+
+          pwd = getpwnam(watcher->user);
           if (!pwd)
             {
-              LOG_DEBUG("%s", N_("failed to retrieve the user id"));
+              gchar *err;
+              uid_t uid;
 
-              return FALSE;
+              LOG_DEBUG("%s",
+                  N_("failed to retrieve the user name, trying the user id"));
+
+              uid = (uid_t) strtol(watcher->user, &err, 10);
+              if ((err == watcher->user) || (errno == ERANGE)
+                  || (errno == EINVAL))
+                {
+                  LOG_DEBUG("%s", N_("invalid value"));
+
+                  return FALSE;
+                }
+
+              pwd = getpwuid(uid);
+              if (!pwd)
+                {
+                  LOG_DEBUG("%s", N_("failed to retrieve the user id"));
+
+                  return FALSE;
+                }
             }
-        }
 
-      if (pwd->pw_uid != st_file.st_uid)
-        {
-          LOG_DEBUG("%s", N_("the owner user matches"));
-
-          return FALSE;
-        }
-    }
-
-  if (watcher->group)
-    {
-      struct group *grp;
-
-      grp = getgrnam(watcher->group);
-      if (!grp)
-        {
-          gchar *err;
-          gid_t gid;
-
-          LOG_DEBUG("%s", N_("failed to retrieve the group name, trying the group id"));
-
-          gid = (gid_t) strtol(watcher->group, &err, 10);
-          if ((err == watcher->user) || (errno == ERANGE) || (errno == EINVAL))
+          if (pwd->pw_uid != st_file.st_uid)
             {
-              LOG_DEBUG("%s", N_("invalid value"));
+              LOG_DEBUG("%s", N_("the owner user matches"));
 
               return FALSE;
             }
+        }
 
-          grp = getgrgid(gid);
+      if (watcher->group)
+        {
+          struct group *grp;
+
+          grp = getgrnam(watcher->group);
           if (!grp)
             {
-              LOG_DEBUG("%s", N_("failed to retrieve the group id"));
+              gchar *err;
+              gid_t gid;
+
+              LOG_DEBUG("%s",
+                  N_("failed to retrieve the group name, trying the group id"));
+
+              gid = (gid_t) strtol(watcher->group, &err, 10);
+              if ((err == watcher->user) || (errno == ERANGE)
+                  || (errno == EINVAL))
+                {
+                  LOG_DEBUG("%s", N_("invalid value"));
+
+                  return FALSE;
+                }
+
+              grp = getgrgid(gid);
+              if (!grp)
+                {
+                  LOG_DEBUG("%s", N_("failed to retrieve the group id"));
+
+                  return FALSE;
+                }
+            }
+
+          if (grp->gr_gid != st_file.st_gid)
+            {
+              LOG_DEBUG("%s", N_("the owner group matches"));
 
               return FALSE;
             }
-        }
-
-      if (grp->gr_gid != st_file.st_gid)
-        {
-          LOG_DEBUG("%s", N_("the owner group matches"));
-
-          return FALSE;
         }
     }
 
