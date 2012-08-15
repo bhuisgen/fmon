@@ -27,6 +27,7 @@
 #include "mount.h"
 #include "watcher.h"
 
+#include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -215,6 +216,7 @@ init_watchers()
   GSList *list = NULL;
   GError *error = NULL;
   gchar **groups;
+  gchar *value;
   gsize len;
   gint i;
 
@@ -415,6 +417,170 @@ init_watchers()
           g_error_free(error);
           error = NULL;
         }
+
+      watcher->readable = g_key_file_get_boolean(app->settings, watcher->name,
+          CONFIG_KEY_WATCHER_READABLE, &error);
+      if (error)
+        {
+    	  watcher->readable = CONFIG_KEY_WATCHER_READABLE_DEFAULT;
+
+          g_error_free(error);
+          error = NULL;
+        }
+
+      watcher->writable = g_key_file_get_boolean(app->settings, watcher->name,
+          CONFIG_KEY_WATCHER_WRITABLE, &error);
+      if (error)
+        {
+    	  watcher->writable = CONFIG_KEY_WATCHER_WRITABLE_DEFAULT;
+
+          g_error_free(error);
+          error = NULL;
+        }
+
+      watcher->executable = g_key_file_get_boolean(app->settings, watcher->name,
+          CONFIG_KEY_WATCHER_EXECUTABLE, &error);
+      if (error)
+        {
+    	  watcher->executable = CONFIG_KEY_WATCHER_EXECUTABLE_DEFAULT;
+
+          g_error_free(error);
+          error = NULL;
+        }
+
+      watcher->size = -1;
+      watcher->size_unit = WATCHER_SIZE_UNIT_BYTES;
+      watcher->size_cmp = WATCHER_SIZE_COMPARE_EQUAL;
+
+      value = g_key_file_get_string(app->settings, watcher->name,
+          CONFIG_KEY_WATCHER_SIZE, &error);
+      if (error)
+        {
+          g_error_free(error);
+          error = NULL;
+        }
+      else
+        {
+          GRegex *regex_size;
+          GMatchInfo *match_info;
+          gchar *str, *err;
+
+          regex_size = g_regex_new("^([^0-9])?(\\d+)([^0-9])?$", 0, 0, NULL);
+
+          if (g_regex_match(regex_size, value, 0, &match_info))
+            {
+              str = g_match_info_fetch(match_info, 1);
+              if (str)
+                {
+                  if ((g_strcmp0(str, "") != 0) &&
+                      (g_strcmp0(str, CONFIG_KEY_WATCHER_SIZE_GREATER) != 0) &&
+                      (g_strcmp0(str, CONFIG_KEY_WATCHER_SIZE_LESS) != 0))
+                    {
+                      g_printerr("%s: %s\n", watcher->name, N_("invalid size comparator"));
+
+                      g_free(str);
+                      g_match_info_free(match_info);
+                      g_regex_unref(regex_size);
+                      g_free(value);
+                      g_free(watcher->exec);
+                      g_strfreev(watcher->events);
+                      g_free(watcher->path);
+                      g_free(watcher->name);
+                      g_free(watcher);
+                      g_strfreev(groups);
+
+                      return NULL;
+                    }
+
+                  if (g_strcmp0(str, CONFIG_KEY_WATCHER_SIZE_GREATER) == 0)
+                    watcher->size_cmp = WATCHER_SIZE_COMPARE_GREATER;
+
+                  if (g_strcmp0(str, CONFIG_KEY_WATCHER_SIZE_LESS) == 0)
+                    watcher->size_cmp = WATCHER_SIZE_COMPARE_LESS;
+
+                  g_free(str);
+                }
+
+              str = g_match_info_fetch(match_info, 2);
+              watcher->size = (int) strtol (str, &err, 10);
+              if ((err == str) || (errno == ERANGE))
+                {
+                  g_printerr("%s: %s\n", watcher->name, N_("invalid size"));
+
+                  g_free(str);
+                  g_match_info_free(match_info);
+                  g_regex_unref(regex_size);
+                  g_free(value);
+                  g_free(watcher->exec);
+                  g_strfreev(watcher->events);
+                  g_free(watcher->path);
+                  g_free(watcher->name);
+                  g_free(watcher);
+                  g_strfreev(groups);
+
+                  return NULL;
+                }
+
+              g_free(str);
+
+              str = g_match_info_fetch(match_info, 3);
+              if (str)
+                {
+                  if ((g_strcmp0(str, "") != 0) &&
+                      (g_strcmp0(str, CONFIG_KEY_WATCHER_SIZE_BYTES) != 0) &&
+                      (g_strcmp0(str, CONFIG_KEY_WATCHER_SIZE_KBYTES) != 0) &&
+                      (g_strcmp0(str, CONFIG_KEY_WATCHER_SIZE_MBYTES) != 0) &&
+                      (g_strcmp0(str, CONFIG_KEY_WATCHER_SIZE_GBYTES) != 0))
+                    {
+                      g_printerr("%s: %s\n", watcher->name, N_("invalid size unit"));
+
+                      g_free(str);
+                      g_match_info_free(match_info);
+                      g_regex_unref(regex_size);
+                      g_free(value);
+                      g_free(watcher->exec);
+                      g_strfreev(watcher->events);
+                      g_free(watcher->path);
+                      g_free(watcher->name);
+                      g_free(watcher);
+                      g_strfreev(groups);
+
+                      return NULL ;
+                    }
+
+                  if (g_strcmp0(str, CONFIG_KEY_WATCHER_SIZE_KBYTES) == 0)
+                    watcher->size_unit = WATCHER_SIZE_UNIT_KBYTES;
+
+                  if (g_strcmp0(str, CONFIG_KEY_WATCHER_SIZE_MBYTES) == 0)
+                    watcher->size_unit = WATCHER_SIZE_UNIT_MBYTES;
+
+                  if (g_strcmp0(str, CONFIG_KEY_WATCHER_SIZE_GBYTES) == 0)
+                    watcher->size_unit = WATCHER_SIZE_UNIT_GBYTES;
+
+                  g_free(str);
+                }
+
+              g_match_info_free(match_info);
+              g_regex_unref(regex_size);
+            }
+          else
+            {
+              g_printerr("%s: %s\n", watcher->name, N_("invalid size"));
+
+              g_match_info_free(match_info);
+              g_regex_unref(regex_size);
+              g_free(value);
+              g_strfreev(watcher->events);
+              g_free(watcher->path);
+              g_free(watcher->name);
+              g_free(watcher);
+              g_strfreev(groups);
+
+              return NULL;
+            }
+        }
+
+      g_free(value);
 
       watcher->type = g_key_file_get_string(app->settings, watcher->name,
           CONFIG_KEY_WATCHER_TYPE, &error);
@@ -785,6 +951,10 @@ parse_command_line(gint argc, gchar *argv[])
   gint watcher_maxdepth = CONFIG_KEY_WATCHER_MAXDEPTH_DEFAULT;
   gchar *watcher_event = NULL;
   gboolean watcher_mount = CONFIG_KEY_WATCHER_MOUNT_DEFAULT;
+  gboolean watcher_readable = CONFIG_KEY_WATCHER_READABLE_DEFAULT;
+  gboolean watcher_writable = CONFIG_KEY_WATCHER_WRITABLE_DEFAULT;
+  gboolean watcher_executable = CONFIG_KEY_WATCHER_EXECUTABLE_DEFAULT;
+  gchar *watcher_size = NULL;
   gchar *watcher_type = NULL;
   gchar *watcher_user = NULL;
   gchar *watcher_group = NULL;
@@ -814,9 +984,17 @@ parse_command_line(gint argc, gchar *argv[])
       { "event", 0, 0, G_OPTION_ARG_STRING, &watcher_event,
           N_("Event to watch"), N_("EVENT") },
       { "mount", 0, 0, G_OPTION_ARG_NONE, &watcher_mount,
-          N_("Ignore directories on other filesystems"), NULL },
-      { "type", 0, 0, G_OPTION_ARG_STRING, &watcher_type, N_("Check file type"),
-          N_("TYPE") },
+          N_("Don't descend directories on other filesystems"), NULL },
+      { "readable", 0, 0, G_OPTION_ARG_NONE, &watcher_readable,
+          N_("Matches files which are readable"), NULL },
+      { "writable", 0, 0, G_OPTION_ARG_NONE, &watcher_writable,
+          N_("Matches files which are writable"), NULL },
+      { "executable", 0, 0, G_OPTION_ARG_NONE, &watcher_executable,
+          N_("Matches files which are executable and directories which are searchable"), NULL },
+      { "size", 0, 0, G_OPTION_ARG_STRING, &watcher_size,
+          N_("Matches files using given size"), N_("N") },
+      { "type", 0, 0, G_OPTION_ARG_STRING, &watcher_type,
+          N_("Check file type"), N_("TYPE") },
       { "user", 0, 0, G_OPTION_ARG_STRING, &watcher_user,
           N_("Check owner user"), N_("NAME") },
       { "group", 0, 0, G_OPTION_ARG_STRING, &watcher_group,
@@ -886,6 +1064,19 @@ parse_command_line(gint argc, gchar *argv[])
 
       g_key_file_set_boolean(app->settings, CONFIG_GROUP_WATCHER,
           CONFIG_KEY_WATCHER_MOUNT, watcher_mount);
+
+      g_key_file_set_boolean(app->settings, CONFIG_GROUP_WATCHER,
+          CONFIG_KEY_WATCHER_READABLE, watcher_readable);
+
+      g_key_file_set_boolean(app->settings, CONFIG_GROUP_WATCHER,
+          CONFIG_KEY_WATCHER_WRITABLE, watcher_writable);
+
+      g_key_file_set_boolean(app->settings, CONFIG_GROUP_WATCHER,
+          CONFIG_KEY_WATCHER_EXECUTABLE, watcher_executable);
+
+      if (watcher_size)
+        g_key_file_set_string(app->settings, CONFIG_GROUP_WATCHER,
+            CONFIG_KEY_WATCHER_SIZE, watcher_size);
 
       if (watcher_type)
         g_key_file_set_string(app->settings, CONFIG_GROUP_WATCHER,
@@ -1183,6 +1374,12 @@ main(gint argc, gchar *argv[])
       signal(SIGHUP, sighup);
       signal(SIGUSR1, sigusr1);
       signal(SIGUSR2, sigusr2);
+    }
+  else
+    {
+      signal(SIGHUP, SIG_IGN);
+      signal(SIGUSR1, SIG_IGN);
+      signal(SIGUSR2, SIG_IGN);
     }
 
   start_monitors();

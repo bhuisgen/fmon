@@ -26,6 +26,7 @@
 #include <grp.h>
 #include <pwd.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 gboolean
 watcher_add_monitor_for_path(const watcher_t *watcher, const gchar *path)
@@ -468,10 +469,119 @@ watcher_event_test(watcher_t *watcher, watcher_event_t *event)
         {
           if (st_file.st_dev != st_path.st_dev)
             {
-              LOG_ERROR("%s", N_("the filesystems are not the same"));
+              LOG_DEBUG("%s", N_("the filesystems are not the same"));
 
               return FALSE;
             }
+        }
+
+      if (watcher->readable)
+        {
+          if (g_access (event->file, R_OK) != 0)
+            {
+              LOG_DEBUG("%s", N_("the file is not readable"));
+
+              return FALSE;
+            }
+        }
+
+      if (watcher->writable)
+        {
+          if (g_access (event->file, W_OK) != 0)
+            {
+              LOG_DEBUG("%s", N_("the file is not writable"));
+
+              return FALSE;
+            }
+        }
+
+      if (watcher->executable)
+        {
+          if (g_access (event->file, X_OK) != 0)
+            {
+              LOG_DEBUG("%s", N_("the file is not executable"));
+
+              return FALSE;
+            }
+        }
+
+      if (!S_ISDIR(st_file.st_mode) && (watcher->size > -1))
+        {
+          guint size;
+
+          switch (watcher->size_unit)
+          {
+          case WATCHER_SIZE_UNIT_KBYTES:
+            {
+              size = watcher->size * 1024;
+
+              break;
+            }
+
+
+          case WATCHER_SIZE_UNIT_MBYTES:
+            {
+              size = watcher->size * 1048576;
+
+              break;
+            }
+
+
+          case WATCHER_SIZE_UNIT_GBYTES:
+            {
+              size = watcher->size * 1073741824;
+
+              break;
+            }
+
+          case WATCHER_SIZE_UNIT_BYTES:
+          default:
+            {
+              size = watcher->size;
+
+              break;
+            }
+          }
+
+          switch (watcher->size_cmp)
+          {
+          case WATCHER_SIZE_COMPARE_GREATER:
+            {
+              if (st_file.st_size <= size)
+                {
+                  LOG_DEBUG("%s", N_("the file size is not greater"));
+
+                  return FALSE;
+                }
+
+              break;
+            }
+
+          case WATCHER_SIZE_COMPARE_LESS:
+            {
+              if (st_file.st_size >= size)
+                {
+                  LOG_DEBUG("%s", N_("the file size is not less"));
+
+                  return FALSE;
+                }
+
+              break;
+            }
+
+          case WATCHER_SIZE_COMPARE_EQUAL:
+          default:
+            {
+              if (st_file.st_size != size)
+                {
+                  LOG_DEBUG("%s", N_("the file size is not equal"));
+
+                  return FALSE;
+                }
+
+              break;
+            }
+          }
         }
 
       if (watcher->type)
@@ -604,7 +714,7 @@ watcher_event_test(watcher_t *watcher, watcher_event_t *event)
                       N_("failed to retrieve the group name, trying the group id"));
 
                   gid = (gid_t) strtol(watcher->group, &err, 10);
-                  if ((err == watcher->user) || (errno == ERANGE)
+                  if ((err == watcher->group) || (errno == ERANGE)
                       || (errno == EINVAL))
                     {
                       LOG_DEBUG("%s", N_("invalid value"));

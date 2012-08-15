@@ -31,6 +31,19 @@ typedef struct _watcher_t
   gboolean print;
   gboolean print0;
   gboolean mount;
+  gboolean readable;
+  gboolean writable;
+  gboolean executable;
+  gint size;
+  guint size_unit;
+#define WATCHER_SIZE_UNIT_BYTES         0
+#define WATCHER_SIZE_UNIT_KBYTES        1
+#define WATCHER_SIZE_UNIT_MBYTES        2
+#define WATCHER_SIZE_UNIT_GBYTES        3
+  guint size_cmp;
+#define WATCHER_SIZE_COMPARE_EQUAL      0
+#define WATCHER_SIZE_COMPARE_GREATER    1
+#define WATCHER_SIZE_COMPARE_LESS       2
   gchar *type;
   gchar *user;
   gchar *group;
