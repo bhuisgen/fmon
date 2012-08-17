@@ -1,9 +1,12 @@
 NEWS
 
+[0.3]
+	- file tests: size, readable, writable, executable.
+
 [0.2]
 	- support mount/umount events for removable devices.
 	- recursive directory support.
-	- file checks: owner, group, mount and type.
+	- file tests: owner, group, mount and type.
 	- allow command line execution.
 
 [0.1]

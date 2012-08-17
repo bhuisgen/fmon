@@ -1,2 +1,4 @@
 # List of source files which contain translatable strings.
 src/fmon.c
+src/mount.c
+src/watcher.c

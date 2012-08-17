@@ -1,3 +1,70 @@
+commit b5d4491c576e068c5ecb5e58b8144a9bc512e021
+Merge: da19e71 e3d95de
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Sat Aug 18 00:35:26 2012 +0200
+
+    Merge branch 'dev'
+
+commit e3d95ded6046e1ba087b39d4d4ca159d1ee23f95
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Wed Aug 15 02:15:37 2012 +0200
+
+    Add new file tests.
+    
+    - watcher.c: add size and permissions tests.
+    - watcher.c: fix group test.
+    - fmon.c: add support of new tests.
+    - fmon.c: fix to ignore signals in CLI mode.
+    - fmon.conf: update configuration file.
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
+
+commit da19e717b469851ff7e0f35c90c0c1a61ffd611d
+Merge: 67b8706 c780f62
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Wed Aug 15 00:46:47 2012 +0200
+
+    Merge branch 'hotfix-0.2.1'
+
+commit c780f628b390bbd9adfc203eb5c5fd19edd2dfe7
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Tue Mar 20 01:23:00 2012 +0100
+
+    Bump version to 0.2.1.
+    
+    - fmond.c: fix recursion to ignore symbolic links.
+    - fmond.c: fix ignore file checks if event is deleted/unmounted.
+    - fmond.c: fix file type checks.
+    - fmond.c: fix watcher_add_monitor_for_path().
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
+
+commit d968113c94941e31b25e2f072f9f1d26aa3bc0f3
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Mon Mar 19 20:53:32 2012 +0100
+
+    Add changing event support.
+    
+    - mount.c: new source file with all mount functions.
+    - watcher.c: new source file with all watchers functions.
+    - watcher.c: fix recursion to ignore symbolic links.
+    - watcher.c: fix ignore file checks if event is deleted/unmounted.
+    - watcher.c: fix file type checks.
+    - watcher.c: add changing file event support.
+    - pfwd.h: add changing event option value.
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
+
+commit 67b8706de37055e93536c56399dd3dbeff80372f
+Author: Boris HUISGEN <bhuisgen@hbis.fr>
+Date:   Mon Mar 19 20:12:22 2012 +0100
+
+    Bump version to 0.2.
+    
+    - fmon.c: fix gcc warnings.
+    
+    Signed-off-by: Boris HUISGEN <bhuisgen@hbis.fr>
+
 commit df9134100abb7802ca51f51d54b5f2ec817ae3fc
 Author: Boris HUISGEN <bhuisgen@hbis.fr>
 Date:   Sun Mar 18 01:59:53 2012 +0100

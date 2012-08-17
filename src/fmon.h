@@ -63,6 +63,7 @@
 #define CONFIG_KEY_WATCHER_MAXDEPTH                     "MaxDepth"
 #define CONFIG_KEY_WATCHER_MAXDEPTH_DEFAULT             0
 #define CONFIG_KEY_WATCHER_EVENTS                       "Events"
+#define CONFIG_KEY_WATCHER_EVENT_CHANGING               "changing"
 #define CONFIG_KEY_WATCHER_EVENT_CHANGED                "changed"
 #define CONFIG_KEY_WATCHER_EVENT_CREATED                "created"
 #define CONFIG_KEY_WATCHER_EVENT_DELETED                "deleted"
@@ -71,6 +72,19 @@
 #define CONFIG_KEY_WATCHER_EVENT_UNMOUNTED              "unmounted"
 #define CONFIG_KEY_WATCHER_MOUNT                        "Mount"
 #define CONFIG_KEY_WATCHER_MOUNT_DEFAULT                0
+#define CONFIG_KEY_WATCHER_READABLE			"Readable"
+#define CONFIG_KEY_WATCHER_READABLE_DEFAULT             0
+#define CONFIG_KEY_WATCHER_WRITABLE			"Writable"
+#define CONFIG_KEY_WATCHER_WRITABLE_DEFAULT             0
+#define CONFIG_KEY_WATCHER_EXECUTABLE			"Executable"
+#define CONFIG_KEY_WATCHER_EXECUTABLE_DEFAULT           0
+#define CONFIG_KEY_WATCHER_SIZE                         "Size"
+#define CONFIG_KEY_WATCHER_SIZE_GREATER                 "+"
+#define CONFIG_KEY_WATCHER_SIZE_LESS                    "-"
+#define CONFIG_KEY_WATCHER_SIZE_BYTES                   "b"
+#define CONFIG_KEY_WATCHER_SIZE_KBYTES                  "k"
+#define CONFIG_KEY_WATCHER_SIZE_MBYTES                  "M"
+#define CONFIG_KEY_WATCHER_SIZE_GBYTES                  "G"
 #define CONFIG_KEY_WATCHER_TYPE                         "Type"
 #define CONFIG_KEY_WATCHER_TYPE_BLOCK                   "b"
 #define CONFIG_KEY_WATCHER_TYPE_CHARACTER               "c"
@@ -98,7 +112,7 @@ typedef struct _application_t
   gboolean daemon;
   logger_t *logger;
   GKeyFile *settings;
-  GUnixMountMonitor *monitor;
+  GUnixMountMonitor *mount;
   GList *mounts;
   GSList *watchers;
   gboolean started;
@@ -107,5 +121,13 @@ typedef struct _application_t
 } application_t;
 
 extern application_t *app;
+
+#define LOG_ERROR(_fmt, ...)    if (app->logger) log_message(app->logger, LOG_LEVEL_ERROR, _fmt, __VA_ARGS__)
+#define LOG_INFO(_fmt, ...)     if (app->logger) log_message(app->logger, LOG_LEVEL_INFO, _fmt, __VA_ARGS__)
+#ifdef DEBUG
+#define LOG_DEBUG(_fmt, ...)    if (app->logger) log_message(app->logger, LOG_LEVEL_DEBUG, _fmt, __VA_ARGS__)
+#else
+#define LOG_DEBUG(_fmt, ...)
+#endif
 
 #endif /* FMON_H_ */
